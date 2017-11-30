@@ -117,7 +117,7 @@ fn count_lines(content: String) {
     let stdout = io::stdout();
     let mut handle = stdout.lock();
     for row in data {
-        let _ = writeln!(handle, "{} {} {}", row.1.total_lines, row.1.copies, row.0);
+        let _ = writeln!(handle, "{:7} {:4}  {}", row.1.total_lines, row.1.copies, row.0);
     }
 }
 
