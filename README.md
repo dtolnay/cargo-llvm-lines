@@ -4,7 +4,13 @@
 [![Latest Version](https://img.shields.io/crates/v/cargo-llvm-lines.svg)](https://crates.io/crates/cargo-llvm-lines)
 
 Count the number of lines of LLVM IR across all instantiations of a generic
-function.
+function. Based on a suggestion from **@eddyb** on how to a count monomorphized
+functions in order to debug compiler memory usage and executable size.
+
+> **\<eddyb>** unoptimized LLVM IR<br>
+> **\<eddyb>** first used grep '^define' to get only the lines defining function bodies<br>
+> **\<eddyb>** then regex replace in my editor to remove everything before @ and everything after (<br>
+> **\<eddyb>** then sort | uniq -c<br>
 
 ## Installation
 
