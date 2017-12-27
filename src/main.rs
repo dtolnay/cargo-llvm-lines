@@ -46,6 +46,7 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     let mut cmd = Command::new("cargo");
     let args: Vec<_> = env::args_os().collect();
     cmd.args(&wrap_args(args.clone(), outfile.as_ref()));
+    cmd.env("CARGO_INCREMENTAL", "");
 
     let mut filter_cargo = Vec::new();
     filter_cargo.extend(args.iter().map(OsString::as_os_str));
