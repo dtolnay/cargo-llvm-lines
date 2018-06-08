@@ -9,4 +9,4 @@ rust:
   - 1.22.0
 
 script:
-  - cargo build --verbose
+  - cargo check
