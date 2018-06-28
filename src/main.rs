@@ -166,7 +166,8 @@ impl Drop for Wait {
     }
 }
 
-#[cfg(target_os = "linux")]
+// TODO: Any other targets that need a different implementation.
+#[cfg(not(target_os = "windows"))]
 unsafe fn create_stdios(child: &Child) -> (Stdio, Stdio) {
     use std::os::unix::io::{AsRawFd, FromRawFd};
     let stdout = Stdio::from_raw_fd(child.stdout.as_ref().map(AsRawFd::as_raw_fd).unwrap());
