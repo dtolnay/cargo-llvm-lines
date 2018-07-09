@@ -1,22 +1,59 @@
+extern crate isatty;
+extern crate rustc_demangle;
+extern crate tempdir;
+#[macro_use]
+extern crate structopt;
+
+use isatty::stderr_isatty;
+use rustc_demangle::demangle;
 use std::collections::HashMap as Map;
 use std::env;
 use std::ffi::{OsStr, OsString};
 use std::fs::{self, File};
-use std::io::{self, Read, Write, ErrorKind};
+use std::io::{self, ErrorKind, Read, Write};
 use std::path::{Path, PathBuf};
-use std::process::{self, Child, Stdio, Command};
-
-extern crate isatty;
-use isatty::stderr_isatty;
-
-extern crate rustc_demangle;
-use rustc_demangle::demangle;
-
-extern crate tempdir;
+use std::process::{self, Child, Command, Stdio};
+use structopt::StructOpt;
 use tempdir::TempDir;
 
+#[derive(StructOpt, Debug)]
+#[structopt(
+    name = "cargo-llvm-lines",
+    bin_name = "cargo",
+    about = "Print amount of lines of LLVM IR that is generated for the current project"
+)]
+enum Opt {
+    #[structopt(
+        name = "llvm-lines", raw(setting = "structopt::clap::AppSettings::AllowExternalSubcommands")
+    )]
+    LLVMLines {
+        #[structopt(long = "filter-cargo", raw(hidden = "true"))]
+        filter_cargo: bool,
+        #[structopt(long = "lib", raw(hidden = "true"))]
+        lib: bool,
+
+        #[structopt(long = "bin", raw(hidden = "true"))]
+        bin: Option<String>,
+
+        /// Set the sort order to number of instantiations
+        #[structopt(short = "i", long = "sort-insts")]
+        sort_insts: bool,
+    },
+}
+
 fn main() {
-    let result = cargo_llvm_lines();
+    let Opt::LLVMLines {
+        filter_cargo,
+        sort_insts,
+        ..
+    } = Opt::from_args();
+
+    let sort_order = match sort_insts {
+        false => SortOrder::TotalLines,
+        _ => SortOrder::Copies,
+    };
+    let result = cargo_llvm_lines(filter_cargo, sort_order);
+
     process::exit(match result {
         Ok(code) => code,
         Err(err) => {
@@ -26,10 +63,9 @@ fn main() {
     });
 }
 
-fn cargo_llvm_lines() -> io::Result<i32> {
-    match env::args_os().last().unwrap().to_str().unwrap_or("") {
-        "--filter-cargo" => filter_err(ignore_cargo_err),
-        _ => {}
+fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32> {
+    if filter_cargo {
+        filter_err(ignore_cargo_err);
     }
 
     let outdir = TempDir::new("cargo-llvm-lines").expect("failed to create tmp file");
@@ -37,14 +73,16 @@ fn cargo_llvm_lines() -> io::Result<i32> {
 
     run_cargo_rustc(outfile)?;
     let ir = read_llvm_ir(outdir)?;
-    count_lines(ir);
+    count_lines(ir, sort_order);
 
     Ok(0)
 }
 
 fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     let mut cmd = Command::new("cargo");
-    let args: Vec<_> = env::args_os().collect();
+    let args: Vec<_> = env::args_os()
+        .filter(|s| !["--sort-insts", "-i"].contains(&s.to_string_lossy().as_ref()))
+        .collect();
     cmd.args(&wrap_args(args.clone(), outfile.as_ref()));
     cmd.env("CARGO_INCREMENTAL", "");
 
@@ -88,7 +126,12 @@ impl Instantiations {
     }
 }
 
-fn count_lines(content: String) {
+enum SortOrder {
+    TotalLines,
+    Copies,
+}
+
+fn count_lines(content: String, sort_order: SortOrder) {
     let mut instantiations = Map::<String, Instantiations>::new();
     let mut current_function = None;
     let mut count = 0;
@@ -98,7 +141,8 @@ fn count_lines(content: String) {
             current_function = parse_function_name(line);
         } else if line == "}" {
             if let Some(name) = current_function.take() {
-                instantiations.entry(name)
+                instantiations
+                    .entry(name)
                     .or_insert_with(Default::default)
                     .record_lines(count);
             }
@@ -109,16 +153,32 @@ fn count_lines(content: String) {
     }
 
     let mut data = instantiations.into_iter().collect::<Vec<_>>();
-    data.sort_by(|a, b| {
-        let key_lo = (b.1.total_lines, b.1.copies, &a.0);
-        let key_hi = (a.1.total_lines, a.1.copies, &b.0);
-        key_lo.cmp(&key_hi)
-    });
+
+    match sort_order {
+        SortOrder::TotalLines => {
+            data.sort_by(|a, b| {
+                let key_lo = (b.1.total_lines, b.1.copies, &a.0);
+                let key_hi = (a.1.total_lines, a.1.copies, &b.0);
+                key_lo.cmp(&key_hi)
+            });
+        }
+        SortOrder::Copies => {
+            data.sort_by(|a, b| {
+                let key_lo = (b.1.copies, b.1.total_lines, &a.0);
+                let key_hi = (a.1.copies, a.1.total_lines, &b.0);
+                key_lo.cmp(&key_hi)
+            });
+        }
+    }
 
     let stdout = io::stdout();
     let mut handle = stdout.lock();
     for row in data {
-        let _ = writeln!(handle, "{:7} {:4}  {}", row.1.total_lines, row.1.copies, row.0);
+        let _ = writeln!(
+            handle,
+            "{:7} {:4}  {}",
+            row.1.total_lines, row.1.copies, row.0
+        );
     }
 }
 
@@ -141,9 +201,7 @@ fn has_hash(name: &str) -> bool {
             return false;
         }
     }
-    bytes.next() == Some(b'h')
-        && bytes.next() == Some(b':')
-        && bytes.next() == Some(b':')
+    bytes.next() == Some(b'h') && bytes.next() == Some(b':') && bytes.next() == Some(b':')
 }
 
 fn is_ascii_hexdigit(byte: u8) -> bool {
@@ -179,8 +237,20 @@ unsafe fn create_stdios(child: &Child) -> (Stdio, Stdio) {
 #[cfg(target_os = "windows")]
 unsafe fn create_stdios(child: &Child) -> (Stdio, Stdio) {
     use std::os::windows::io::{AsRawHandle, FromRawHandle};
-    let stdout = Stdio::from_raw_handle(child.stdout.as_ref().map(AsRawHandle::as_raw_handle).unwrap());
-    let stderr = Stdio::from_raw_handle(child.stderr.as_ref().map(AsRawHandle::as_raw_handle).unwrap());
+    let stdout = Stdio::from_raw_handle(
+        child
+            .stdout
+            .as_ref()
+            .map(AsRawHandle::as_raw_handle)
+            .unwrap(),
+    );
+    let stderr = Stdio::from_raw_handle(
+        child
+            .stderr
+            .as_ref()
+            .map(AsRawHandle::as_raw_handle)
+            .unwrap(),
+    );
 
     (stdout, stderr)
 }
@@ -267,9 +337,10 @@ fn ignore_cargo_err(line: &str) -> bool {
          requested",
         "ignoring specified output filename for 'link' output because multiple \
          outputs were requested",
-        "ignoring --out-dir flag due to -o flag.",
+        "ignoring --out-dir flag due to -o flag",
         "due to multiple output types requested, the explicitly specified \
          output file name will be adapted for each output type",
+        "ignoring -C extra-filename flag due to -o flag",
     ];
     for s in &blacklist {
         if line.contains(s) {
