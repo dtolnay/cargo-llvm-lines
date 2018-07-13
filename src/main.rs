@@ -3,6 +3,8 @@ extern crate rustc_demangle;
 extern crate tempdir;
 #[macro_use]
 extern crate structopt;
+#[macro_use]
+extern crate clap;
 
 use isatty::stderr_isatty;
 use rustc_demangle::demangle;
@@ -36,23 +38,22 @@ enum Opt {
         bin: Option<String>,
 
         /// Set the sort order to number of instantiations
-        #[structopt(short = "i", long = "sort-insts")]
-        sort_insts: bool,
+        #[structopt(
+            short = "s",
+            long = "sort",
+            raw(possible_values = "&SortOrder::variants()", case_insensitive = "true"),
+            raw(default_value = "\"lines\"")
+        )]
+        sort: SortOrder,
     },
 }
 
 fn main() {
     let Opt::LLVMLines {
-        filter_cargo,
-        sort_insts,
-        ..
+        filter_cargo, sort, ..
     } = Opt::from_args();
 
-    let sort_order = match sort_insts {
-        false => SortOrder::TotalLines,
-        _ => SortOrder::Copies,
-    };
-    let result = cargo_llvm_lines(filter_cargo, sort_order);
+    let result = cargo_llvm_lines(filter_cargo, sort);
 
     process::exit(match result {
         Ok(code) => code,
@@ -81,7 +82,10 @@ fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32
 fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     let mut cmd = Command::new("cargo");
     let args: Vec<_> = env::args_os()
-        .filter(|s| !["--sort-insts", "-i"].contains(&s.to_string_lossy().as_ref()))
+        .filter(|s| {
+            !["--sort", "-s", "lines", "Lines", "copies", "Copies"]
+                .contains(&s.to_string_lossy().as_ref())
+        })
         .collect();
     cmd.args(&wrap_args(args.clone(), outfile.as_ref()));
     cmd.env("CARGO_INCREMENTAL", "");
@@ -126,9 +130,12 @@ impl Instantiations {
     }
 }
 
-enum SortOrder {
-    TotalLines,
-    Copies,
+arg_enum!{
+    #[derive(Debug)]
+    enum SortOrder {
+        Lines,
+        Copies,
+    }
 }
 
 fn count_lines(content: String, sort_order: SortOrder) {
@@ -155,7 +162,7 @@ fn count_lines(content: String, sort_order: SortOrder) {
     let mut data = instantiations.into_iter().collect::<Vec<_>>();
 
     match sort_order {
-        SortOrder::TotalLines => {
+        SortOrder::Lines => {
             data.sort_by(|a, b| {
                 let key_lo = (b.1.total_lines, b.1.copies, &a.0);
                 let key_hi = (a.1.total_lines, a.1.copies, &b.0);
