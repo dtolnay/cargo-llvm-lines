@@ -14,3 +14,6 @@ rustc-demangle = "0.1"
 tempdir = "0.3"
 structopt = "0.2.10"
 clap = "2.32.0"
+
+[badges]
+travis-ci = { repository = "dtolnay/cargo-llvm-lines" }
