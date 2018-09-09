@@ -1,4 +1,4 @@
-extern crate isatty;
+extern crate atty;
 extern crate rustc_demangle;
 extern crate tempdir;
 #[macro_use]
@@ -6,7 +6,7 @@ extern crate structopt;
 #[macro_use]
 extern crate clap;
 
-use isatty::stderr_isatty;
+use atty::Stream::Stderr;
 use rustc_demangle::demangle;
 use std::collections::HashMap as Map;
 use std::env;
@@ -307,7 +307,7 @@ where
     }
 
     if !has_color {
-        let color = stderr_isatty();
+        let color = atty::is(Stderr);
         let setting = if color { "always" } else { "never" };
         args.push(format!("--color={}", setting).into());
     }
