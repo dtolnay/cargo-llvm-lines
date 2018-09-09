@@ -1,6 +1,7 @@
 extern crate atty;
 extern crate rustc_demangle;
 extern crate tempdir;
+#[macro_use]
 extern crate structopt;
 #[macro_use]
 extern crate clap;
