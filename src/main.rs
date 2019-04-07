@@ -19,7 +19,8 @@ use tempdir::TempDir;
 )]
 enum Opt {
     #[structopt(
-        name = "llvm-lines", raw(setting = "structopt::clap::AppSettings::AllowExternalSubcommands")
+        name = "llvm-lines",
+        raw(setting = "structopt::clap::AppSettings::AllowExternalSubcommands")
     )]
     LLVMLines {
         #[structopt(long = "filter-cargo", raw(hidden = "true"))]
@@ -123,7 +124,7 @@ impl Instantiations {
     }
 }
 
-arg_enum!{
+arg_enum! {
     #[derive(Debug)]
     enum SortOrder {
         Lines,
