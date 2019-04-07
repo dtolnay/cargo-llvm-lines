@@ -7,6 +7,7 @@ description = "Count the number of lines of LLVM IR across all instantiations of
 repository = "https://github.com/dtolnay/cargo-llvm-lines"
 documentation = "https://github.com/dtolnay/cargo-llvm-lines"
 categories = ["development-tools::cargo-plugins", "development-tools::debugging"]
+edition = "2018"
 
 [dependencies]
 atty = "0.2"

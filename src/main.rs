@@ -1,13 +1,5 @@
-extern crate atty;
-extern crate rustc_demangle;
-extern crate tempdir;
-#[allow(unused_imports)]
-#[macro_use]
-extern crate structopt;
-#[macro_use]
-extern crate clap;
-
 use atty::Stream::Stderr;
+use clap::arg_enum;
 use rustc_demangle::demangle;
 use std::collections::HashMap as Map;
 use std::env;
