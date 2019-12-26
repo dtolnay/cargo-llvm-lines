@@ -8,6 +8,7 @@ repository = "https://github.com/dtolnay/cargo-llvm-lines"
 documentation = "https://github.com/dtolnay/cargo-llvm-lines"
 categories = ["development-tools::cargo-plugins", "development-tools::debugging"]
 edition = "2018"
+readme = "README.md"
 
 [dependencies]
 atty = "0.2"
