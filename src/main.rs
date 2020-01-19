@@ -174,10 +174,11 @@ fn count_lines(content: String, sort_order: SortOrder) {
 
     let stdout = io::stdout();
     let mut handle = stdout.lock();
+    let _ = writeln!(handle, "  Lines Copies  Function name");
     for row in data {
         let _ = writeln!(
             handle,
-            "{:7} {:4}  {}",
+            "{:7} {:6}  {}",
             row.1.total_lines, row.1.copies, row.0
         );
     }
@@ -225,37 +226,6 @@ impl Drop for Wait {
     }
 }
 
-// TODO: Any other targets that need a different implementation.
-#[cfg(not(target_os = "windows"))]
-unsafe fn create_stdios(child: &Child) -> (Stdio, Stdio) {
-    use std::os::unix::io::{AsRawFd, FromRawFd};
-    let stdout = Stdio::from_raw_fd(child.stdout.as_ref().map(AsRawFd::as_raw_fd).unwrap());
-    let stderr = Stdio::from_raw_fd(child.stderr.as_ref().map(AsRawFd::as_raw_fd).unwrap());
-
-    (stdout, stderr)
-}
-
-#[cfg(target_os = "windows")]
-unsafe fn create_stdios(child: &Child) -> (Stdio, Stdio) {
-    use std::os::windows::io::{AsRawHandle, FromRawHandle};
-    let stdout = Stdio::from_raw_handle(
-        child
-            .stdout
-            .as_ref()
-            .map(AsRawHandle::as_raw_handle)
-            .unwrap(),
-    );
-    let stderr = Stdio::from_raw_handle(
-        child
-            .stderr
-            .as_ref()
-            .map(AsRawHandle::as_raw_handle)
-            .unwrap(),
-    );
-
-    (stdout, stderr)
-}
-
 trait PipeTo {
     fn pipe_to(&mut self, out: &[&OsStr], err: &[&OsStr]) -> io::Result<Wait>;
 }
@@ -265,9 +235,10 @@ impl PipeTo for Command {
         self.stdout(Stdio::piped());
         self.stderr(Stdio::piped());
 
-        let child = self.spawn()?;
+        let mut child = self.spawn()?;
 
-        let (stdout, stderr) = unsafe { create_stdios(&child) };
+        let stdout = child.stdout.take().ok_or(io::ErrorKind::BrokenPipe)?;
+        let stderr = child.stderr.take().ok_or(io::ErrorKind::BrokenPipe)?;
 
         *self = Command::new(out[0]);
         self.args(&out[1..]);
