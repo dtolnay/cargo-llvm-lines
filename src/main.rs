@@ -174,10 +174,11 @@ fn count_lines(content: String, sort_order: SortOrder) {
 
     let stdout = io::stdout();
     let mut handle = stdout.lock();
+    let _ = writeln!(handle, "  Lines Copies  Function name");
     for row in data {
         let _ = writeln!(
             handle,
-            "{:7} {:4}  {}",
+            "{:7} {:6}  {}",
             row.1.total_lines, row.1.copies, row.0
         );
     }
