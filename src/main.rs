@@ -237,14 +237,8 @@ impl PipeTo for Command {
 
         let mut child = self.spawn()?;
 
-        let stdout = child
-            .stdout
-            .take()
-            .ok_or(io::ErrorKind::BrokenPipe)?;
-        let stderr = child
-            .stderr
-            .take()
-            .ok_or(io::ErrorKind::BrokenPipe)?;
+        let stdout = child.stdout.take().ok_or(io::ErrorKind::BrokenPipe)?;
+        let stderr = child.stderr.take().ok_or(io::ErrorKind::BrokenPipe)?;
 
         *self = Command::new(out[0]);
         self.args(&out[1..]);
