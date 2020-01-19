@@ -12,31 +12,31 @@ use structopt::StructOpt;
 use tempdir::TempDir;
 
 #[derive(StructOpt, Debug)]
-#[structopt(
-    name = "cargo-llvm-lines",
-    bin_name = "cargo",
-    about = "Print amount of lines of LLVM IR that is generated for the current project"
-)]
+#[structopt(name = "cargo-llvm-lines", bin_name = "cargo")]
 enum Opt {
     #[structopt(
         name = "llvm-lines",
-        raw(setting = "structopt::clap::AppSettings::AllowExternalSubcommands")
+        author,
+        about = "Print amount of lines of LLVM IR that is generated for the current project",
+        setting = structopt::clap::AppSettings::AllowExternalSubcommands,
     )]
     LLVMLines {
-        #[structopt(long = "filter-cargo", raw(hidden = "true"))]
+        #[structopt(long, hidden = true)]
         filter_cargo: bool,
-        #[structopt(long = "lib", raw(hidden = "true"))]
+
+        #[structopt(long, hidden = true)]
         lib: bool,
 
-        #[structopt(long = "bin", raw(hidden = "true"))]
+        #[structopt(long, hidden = true)]
         bin: Option<String>,
 
         /// Set the sort order to number of instantiations
         #[structopt(
-            short = "s",
-            long = "sort",
-            raw(possible_values = "&SortOrder::variants()", case_insensitive = "true"),
-            raw(default_value = "\"lines\"")
+            short,
+            long,
+            possible_values = &SortOrder::variants(),
+            case_insensitive = true,
+            default_value = "lines",
         )]
         sort: SortOrder,
     },
