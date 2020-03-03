@@ -279,6 +279,7 @@ where
 
     args.push("--".into());
     args.push("--emit=llvm-ir".into());
+    args.push("-Cno-prepopulate-passes".into());
     args.push("-o".into());
     args.push(outfile.into());
     args.extend(it);
