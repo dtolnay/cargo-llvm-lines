@@ -17,8 +17,5 @@ tempdir = "0.3"
 structopt = "0.3.8"
 clap = "2.32.0"
 
-[badges]
-travis-ci = { repository = "dtolnay/cargo-llvm-lines" }
-
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
