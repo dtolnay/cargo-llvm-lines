@@ -1,6 +1,6 @@
 # cargo-llvm-lines
 
-[![Build Status](https://travis-ci.org/dtolnay/cargo-llvm-lines.svg?branch=master)](https://travis-ci.org/dtolnay/cargo-llvm-lines)
+[![Build Status](https://img.shields.io/github/workflow/status/dtolnay/cargo-llvm-lines/CI/master)](https://github.com/dtolnay/cargo-llvm-lines/actions?query=branch%3Amaster)
 [![Latest Version](https://img.shields.io/crates/v/cargo-llvm-lines.svg)](https://crates.io/crates/cargo-llvm-lines)
 
 Count the number of lines of LLVM IR across all instantiations of a generic
