@@ -155,7 +155,10 @@ fn count_lines(content: String, sort_order: SortOrder) {
 
     let mut data = instantiations.into_iter().collect::<Vec<_>>();
 
-    let mut total = Instantiations { copies: 0, total_lines: 0 };
+    let mut total = Instantiations {
+        copies: 0,
+        total_lines: 0,
+    };
     for row in data.iter() {
         total.copies += row.1.copies;
         total.total_lines += row.1.total_lines;
@@ -182,16 +185,21 @@ fn count_lines(content: String, sort_order: SortOrder) {
     let mut handle = stdout.lock();
     let _ = writeln!(handle, "  Lines        Copies         Function name");
     let _ = writeln!(handle, "  -----        ------         -------------");
-    let _ = writeln!(handle, "{:7} (100%) {:6} (100%)  {}",
-                     total.total_lines, total.copies, "(TOTAL)");
-    let perc = |m, n| { m as f64 / n as f64 * 100f64 };
+    let _ = writeln!(
+        handle,
+        "{:7} (100%) {:6} (100%)  {}",
+        total.total_lines, total.copies, "(TOTAL)",
+    );
+    let perc = |m, n| m as f64 / n as f64 * 100f64;
     for row in data {
         let _ = writeln!(
             handle,
             "{:7} ({:3.1}%) {:6} ({:3.1}%)  {}",
-            row.1.total_lines, perc(row.1.total_lines, total.total_lines),
-            row.1.copies, perc(row.1.copies, total.copies),
-            row.0
+            row.1.total_lines,
+            perc(row.1.total_lines, total.total_lines),
+            row.1.copies,
+            perc(row.1.copies, total.copies),
+            row.0,
         );
     }
 }
