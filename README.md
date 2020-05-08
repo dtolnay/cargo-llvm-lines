@@ -19,37 +19,38 @@ Install with `cargo install cargo-llvm-lines`.
 
 ## Output
 
-One line per function with three columns of output:
+One line per function with five columns of output:
 
 1. Total number of lines of LLVM IR generated across all instantiations of the
-   function.
+   function (and the percentage of the total).
 2. Number of instantiations of the function. For a generic function, roughly the
-   number of distinct combinations of generic type parameters it is called with.
+   number of distinct combinations of generic type parameters it is called with
+   (and the percentage of the total).
 3. Name of the function.
 
 ```
 $ cargo llvm-lines | head -20
 
-   2447  130  core::ptr::drop_in_place
-   1720   19  <core::option::Option<T>>::map
-    862    2  core::str::pattern::TwoWaySearcher::next
-    726    4  <alloc::raw_vec::RawVec<T, A>>::double
-    698    4  <alloc::raw_vec::RawVec<T, A>>::reserve
-    677    6  <core::result::Result<T, E>>::map
-    602    1  cargo_llvm_lines::read_llvm_ir
-    598    5  <alloc::vec::Vec<T>>::extend_desugared
-    477    1  cargo_llvm_lines::count_lines
-    476    9  <alloc::raw_vec::RawVec<T, A>>::dealloc_buffer
-    464   10  alloc::heap::box_free
-    452    5  <alloc::vec::Vec<T> as alloc::vec::SpecExtend<T, I>>::spec_extend
-    448    1  alloc::slice::merge_sort
-    436    1  <std::process::Command as cargo_llvm_lines::PipeTo>::pipe_to
-    419    4  <core::slice::Iter<'a, T> as core::iter::iterator::Iterator>::next
-    400    1  <core::hash::sip::Sip13Rounds as core::hash::sip::Sip>::d_rounds
-    378    9  <alloc::raw_vec::RawVec<T, A>>::current_layout
-    362    3  <alloc::raw_vec::RawVec<T, A>>::allocate_in
-    354    4  <alloc::vec::Vec<T>>::push
-    341    4  <[T] as core::slice::SliceExt>::iter
+  Lines        Copies         Function name
+  -----        ------         -------------
+  30737 (100%)   1107 (100%)  (TOTAL)
+   1395 (4.5%)     83 (7.5%)  core::ptr::drop_in_place
+    760 (2.5%)      2 (0.2%)  alloc::slice::merge_sort
+    734 (2.4%)      2 (0.2%)  alloc::raw_vec::RawVec<T,A>::reserve_internal
+    666 (2.2%)      1 (0.1%)  cargo_llvm_lines::count_lines
+    490 (1.6%)      1 (0.1%)  <std::process::Command as cargo_llvm_lines::PipeTo>::pipe_to
+    476 (1.5%)      6 (0.5%)  core::result::Result<T,E>::map
+    440 (1.4%)      1 (0.1%)  cargo_llvm_lines::read_llvm_ir
+    422 (1.4%)      2 (0.2%)  alloc::slice::merge
+    399 (1.3%)      4 (0.4%)  alloc::vec::Vec<T>::extend_desugared
+    388 (1.3%)      2 (0.2%)  alloc::slice::insert_head
+    366 (1.2%)      5 (0.5%)  core::option::Option<T>::map
+    304 (1.0%)      6 (0.5%)  alloc::alloc::box_free
+    296 (1.0%)      4 (0.4%)  core::result::Result<T,E>::map_err
+    295 (1.0%)      1 (0.1%)  cargo_llvm_lines::wrap_args
+    291 (0.9%)      1 (0.1%)  core::char::methods::<impl char>::encode_utf8
+    286 (0.9%)      1 (0.1%)  cargo_llvm_lines::run_cargo_rustc
+    284 (0.9%)      4 (0.4%)  core::option::Option<T>::ok_or_else
 ```
 
 <br>
