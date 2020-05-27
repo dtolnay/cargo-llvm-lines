@@ -26,13 +26,7 @@ enum Opt {
         #[structopt(long, hidden = true)]
         filter_cargo: bool,
 
-        #[structopt(long, hidden = true)]
-        lib: bool,
-
-        #[structopt(long, hidden = true)]
-        bin: Option<String>,
-
-        /// Set the sort order to number of instantiations
+        /// Set the sort order to number of instantiations.
         #[structopt(
             short,
             long,
@@ -41,6 +35,26 @@ enum Opt {
             default_value = "lines",
         )]
         sort: SortOrder,
+
+        // All these options are passed through to the `rustc` invocation.
+        #[structopt(long, hidden = true)]
+        all_features: bool,
+        #[structopt(long, hidden = true)]
+        bin: Option<String>,
+        #[structopt(long, hidden = true)]
+        features: Option<String>,
+        #[structopt(long, hidden = true)]
+        lib: bool,
+        #[structopt(long, hidden = true)]
+        manifest_path: Option<String>,
+        #[structopt(long, hidden = true)]
+        no_default_features: bool,
+        #[structopt(short, long, hidden = true)]
+        package: Option<String>,
+        #[structopt(long, hidden = true)]
+        profile: Option<String>,
+        #[structopt(long, hidden = true)]
+        release: bool,
     },
 }
 
@@ -79,6 +93,8 @@ fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32
 
 fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     let mut cmd = Command::new("cargo");
+
+    // Strip out options that are for cargo-llvm-lines itself.
     let args: Vec<_> = env::args_os()
         .filter(|s| {
             !["--sort", "-s", "lines", "Lines", "copies", "Copies"]
