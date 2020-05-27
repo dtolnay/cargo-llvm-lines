@@ -330,9 +330,19 @@ where
         args.push(format!("--color={}", setting).into());
     }
 
+    // The `-Cno-prepopulate-passes` means we skip LLVM optimizations, which is
+    // good because (a) we count the LLVM IR lines are sent to LLVM, not how
+    // many there are after optimizations run, and (b) it's faster.
+    //
+    // The `-Cpasses=name-anon-globals` follows on: it's required to avoid the
+    // following error on some programs: "The current compilation is going to
+    // use thin LTO buffers without running LLVM's NameAnonGlobals pass. This
+    // will likely cause errors in LLVM. Consider adding -C
+    // passes=name-anon-globals to the compiler command line."
     args.push("--".into());
     args.push("--emit=llvm-ir".into());
     args.push("-Cno-prepopulate-passes".into());
+    args.push("-Cpasses=name-anon-globals".into());
     args.push("-o".into());
     args.push(outfile.into());
     args.extend(it);
