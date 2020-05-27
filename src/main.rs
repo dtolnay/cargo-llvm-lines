@@ -21,6 +21,8 @@ enum Opt {
         setting = structopt::clap::AppSettings::AllowExternalSubcommands,
     )]
     LLVMLines {
+        /// Run in a different mode that just filters some Cargo output and
+        /// does nothing else.
         #[structopt(long, hidden = true)]
         filter_cargo: bool,
 
@@ -59,6 +61,8 @@ fn main() {
 }
 
 fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32> {
+    // If `--filter-cargo` was specified, just filter the output and exit
+    // early.
     if filter_cargo {
         filter_err(ignore_cargo_err);
     }
@@ -84,10 +88,22 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     cmd.args(&wrap_args(args.clone(), outfile.as_ref()));
     cmd.env("CARGO_INCREMENTAL", "");
 
+    // Duplicate the original command (using `OsStr` for `pipe_to()`), and
+    // insert `--filter-cargo` just after the `cargo-llvm-lines` and
+    // `llvm-lines` arguments.
+    //
+    // Note: the `--filter-cargo` must be inserted there, rather than appended
+    // to the end, so that it comes before a possible `--` arguments. Otherwise
+    // it will be ignored by the recursive invocation done within the
+    // `pipe_to()` call.
     let mut filter_cargo = Vec::new();
     filter_cargo.extend(args.iter().map(OsString::as_os_str));
-    filter_cargo.push(OsStr::new("--filter-cargo"));
+    filter_cargo.insert(2, OsStr::new("--filter-cargo"));
 
+    // Filter stdout through `cat` (i.e. do nothing with it), and filter stderr
+    // through a second invocation of `cargo-llvm-lines`, but with
+    // `--filter-cargo` specified so that it just does the filtering in
+    // `filter_err()` above.
     let _wait = cmd.pipe_to(&[OsStr::new("cat")], &filter_cargo)?;
     run(cmd)?;
     drop(_wait);
@@ -282,6 +298,7 @@ where
     let mut args = vec!["rustc".into()];
     let mut has_color = false;
 
+    // Skip the `cargo-llvm-lines` and `llvm-lines` arguments.
     let mut it = it.into_iter().skip(2);
     for arg in &mut it {
         if arg == *"--" {
@@ -306,6 +323,7 @@ where
     args
 }
 
+/// Print lines from stdin to stderr, skipping lines that `ignore` succeeds on.
 fn filter_err(ignore: fn(&str) -> bool) -> ! {
     let mut line = String::new();
     while let Ok(n) = io::stdin().read_line(&mut line) {
@@ -320,6 +338,7 @@ fn filter_err(ignore: fn(&str) -> bool) -> ! {
     process::exit(0);
 }
 
+/// Match Cargo output lines that we don't want to be printed.
 fn ignore_cargo_err(line: &str) -> bool {
     if line.trim().is_empty() {
         return true;
