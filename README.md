@@ -19,13 +19,13 @@ Install with `cargo install cargo-llvm-lines`.
 
 ## Output
 
-One line per function with five columns of output:
+One line per function with three columns of output:
 
 1. Total number of lines of LLVM IR generated across all instantiations of the
    function (and the percentage of the total).
-2. Number of instantiations of the function. For a generic function, roughly the
-   number of distinct combinations of generic type parameters it is called with
-   (and the percentage of the total).
+2. Number of instantiations of the function (and the percentage of the total).
+   For a generic function, roughly the number of distinct combinations of
+   generic type parameters it is called with.
 3. Name of the function.
 
 ```
