@@ -21,16 +21,12 @@ enum Opt {
         setting = structopt::clap::AppSettings::AllowExternalSubcommands,
     )]
     LLVMLines {
+        /// Run in a different mode that just filters some Cargo output and
+        /// does nothing else.
         #[structopt(long, hidden = true)]
         filter_cargo: bool,
 
-        #[structopt(long, hidden = true)]
-        lib: bool,
-
-        #[structopt(long, hidden = true)]
-        bin: Option<String>,
-
-        /// Set the sort order to number of instantiations
+        /// Set the sort order to number of instantiations.
         #[structopt(
             short,
             long,
@@ -39,6 +35,26 @@ enum Opt {
             default_value = "lines",
         )]
         sort: SortOrder,
+
+        // All these options are passed through to the `rustc` invocation.
+        #[structopt(long, hidden = true)]
+        all_features: bool,
+        #[structopt(long, hidden = true)]
+        bin: Option<String>,
+        #[structopt(long, hidden = true)]
+        features: Option<String>,
+        #[structopt(long, hidden = true)]
+        lib: bool,
+        #[structopt(long, hidden = true)]
+        manifest_path: Option<String>,
+        #[structopt(long, hidden = true)]
+        no_default_features: bool,
+        #[structopt(short, long, hidden = true)]
+        package: Option<String>,
+        #[structopt(long, hidden = true)]
+        profile: Option<String>,
+        #[structopt(long, hidden = true)]
+        release: bool,
     },
 }
 
@@ -59,6 +75,8 @@ fn main() {
 }
 
 fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32> {
+    // If `--filter-cargo` was specified, just filter the output and exit
+    // early.
     if filter_cargo {
         filter_err(ignore_cargo_err);
     }
@@ -75,6 +93,8 @@ fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32
 
 fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     let mut cmd = Command::new("cargo");
+
+    // Strip out options that are for cargo-llvm-lines itself.
     let args: Vec<_> = env::args_os()
         .filter(|s| {
             !["--sort", "-s", "lines", "Lines", "copies", "Copies"]
@@ -84,10 +104,22 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     cmd.args(&wrap_args(args.clone(), outfile.as_ref()));
     cmd.env("CARGO_INCREMENTAL", "");
 
+    // Duplicate the original command (using `OsStr` for `pipe_to()`), and
+    // insert `--filter-cargo` just after the `cargo-llvm-lines` and
+    // `llvm-lines` arguments.
+    //
+    // Note: the `--filter-cargo` must be inserted there, rather than appended
+    // to the end, so that it comes before a possible `--` arguments. Otherwise
+    // it will be ignored by the recursive invocation done within the
+    // `pipe_to()` call.
     let mut filter_cargo = Vec::new();
     filter_cargo.extend(args.iter().map(OsString::as_os_str));
-    filter_cargo.push(OsStr::new("--filter-cargo"));
+    filter_cargo.insert(2, OsStr::new("--filter-cargo"));
 
+    // Filter stdout through `cat` (i.e. do nothing with it), and filter stderr
+    // through a second invocation of `cargo-llvm-lines`, but with
+    // `--filter-cargo` specified so that it just does the filtering in
+    // `filter_err()` above.
     let _wait = cmd.pipe_to(&[OsStr::new("cat")], &filter_cargo)?;
     run(cmd)?;
     drop(_wait);
@@ -282,6 +314,7 @@ where
     let mut args = vec!["rustc".into()];
     let mut has_color = false;
 
+    // Skip the `cargo-llvm-lines` and `llvm-lines` arguments.
     let mut it = it.into_iter().skip(2);
     for arg in &mut it {
         if arg == *"--" {
@@ -297,15 +330,26 @@ where
         args.push(format!("--color={}", setting).into());
     }
 
+    // The `-Cno-prepopulate-passes` means we skip LLVM optimizations, which is
+    // good because (a) we count the LLVM IR lines are sent to LLVM, not how
+    // many there are after optimizations run, and (b) it's faster.
+    //
+    // The `-Cpasses=name-anon-globals` follows on: it's required to avoid the
+    // following error on some programs: "The current compilation is going to
+    // use thin LTO buffers without running LLVM's NameAnonGlobals pass. This
+    // will likely cause errors in LLVM. Consider adding -C
+    // passes=name-anon-globals to the compiler command line."
     args.push("--".into());
     args.push("--emit=llvm-ir".into());
     args.push("-Cno-prepopulate-passes".into());
+    args.push("-Cpasses=name-anon-globals".into());
     args.push("-o".into());
     args.push(outfile.into());
     args.extend(it);
     args
 }
 
+/// Print lines from stdin to stderr, skipping lines that `ignore` succeeds on.
 fn filter_err(ignore: fn(&str) -> bool) -> ! {
     let mut line = String::new();
     while let Ok(n) = io::stdin().read_line(&mut line) {
@@ -320,6 +364,7 @@ fn filter_err(ignore: fn(&str) -> bool) -> ! {
     process::exit(0);
 }
 
+/// Match Cargo output lines that we don't want to be printed.
 fn ignore_cargo_err(line: &str) -> bool {
     if line.trim().is_empty() {
         return true;
