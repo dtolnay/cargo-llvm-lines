@@ -213,23 +213,36 @@ fn count_lines(content: String, sort_order: SortOrder) {
         }
     }
 
+    let lines_width = total.total_lines.to_string().len();
+    let copies_width = total.copies.to_string().len();
+
     let stdout = io::stdout();
     let mut handle = stdout.lock();
-    let _ = writeln!(handle, "  Lines        Copies         Function name");
-    let _ = writeln!(handle, "  -----        ------         -------------");
     let _ = writeln!(
         handle,
-        "{:7} (100%) {:6} (100%)  {}",
-        total.total_lines, total.copies, "(TOTAL)",
+        "  Lines{0:1$}    Copies{0:2$}   Function name",
+        "", lines_width, copies_width,
     );
-    let perc = |m, n| m as f64 / n as f64 * 100f64;
+    let _ = writeln!(
+        handle,
+        "  -----{0:1$}    ------{0:2$}   -------------",
+        "", lines_width, copies_width,
+    );
+    let _ = writeln!(
+        handle,
+        "  {0:1$} (100%)  {2:3$} (100%)  (TOTAL)",
+        total.total_lines, lines_width, total.copies, copies_width,
+    );
+    let perc = |m, n| format!("({:3.1}%)", m as f64 / n as f64 * 100f64);
     for row in data {
         let _ = writeln!(
             handle,
-            "{:7} ({:3.1}%) {:6} ({:3.1}%)  {}",
+            "  {0:1$} {2:<7} {3:4$} {5:<7} {6}",
             row.1.total_lines,
+            lines_width,
             perc(row.1.total_lines, total.total_lines),
             row.1.copies,
+            copies_width,
             perc(row.1.copies, total.copies),
             row.0,
         );
