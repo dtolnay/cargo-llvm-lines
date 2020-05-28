@@ -371,6 +371,7 @@ fn ignore_cargo_err(line: &str) -> bool {
     }
 
     let blacklist = [
+        "warnings emitted",
         "ignoring specified output filename because multiple outputs were \
          requested",
         "ignoring specified output filename for 'link' output because multiple \
