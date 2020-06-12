@@ -84,16 +84,19 @@ fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32
     let outdir = TempDir::new("cargo-llvm-lines").expect("failed to create tmp file");
     let outfile = outdir.path().join("crate");
 
-    // There used to be just a `?` operator, but when running this tool on Windows,
-    // it was mysteriously failing on "System cannot find the file specified. (os error 2)",
-    // even though the original command succeeded and the output was written to the outfile.
-    // That's why we don't return early with `?` anymore, we just log the error instead
-    // and try to read the llvm-ir anyway.
-    // If some different error occurs, we will probably fail to
-    // read llvm-ir files later in `read_llvm_ir()` so we don't explicitly handle it here.
-    if let Err(e) = run_cargo_rustc(outfile) {
-        eprintln!("Something went wrong during compiler invocation:\n{}", e);
-    };
+    if let Err(err) = run_cargo_rustc(outfile) {
+        if cfg!(windows) {
+            // Running on Windows tends to fail with "System cannot find the
+            // file specified. (os error 2)" even when the original command
+            // succeeded and the output IR has been written to the outfile. Just
+            // log the error and try to read IR anyway. Let read_llvm_ir fail in
+            // the case that something really went wrong.
+            eprintln!("Unsuccessful `cargo rustc` invocation: {}", err);
+        } else {
+            return Err(err);
+        }
+    }
+
     let ir = read_llvm_ir(outdir)?;
     count_lines(ir, sort_order);
 
