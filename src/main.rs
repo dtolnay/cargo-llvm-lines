@@ -401,7 +401,7 @@ fn ignore_cargo_err(line: &str) -> bool {
         return true;
     }
 
-    let blacklist = [
+    let discarded_lines = [
         "warnings emitted",
         "ignoring specified output filename because multiple outputs were \
          requested",
@@ -412,7 +412,7 @@ fn ignore_cargo_err(line: &str) -> bool {
          output file name will be adapted for each output type",
         "ignoring -C extra-filename flag due to -o flag",
     ];
-    for s in &blacklist {
+    for s in &discarded_lines {
         if line.contains(s) {
             return true;
         }
