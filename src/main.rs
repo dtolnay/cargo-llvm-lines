@@ -132,21 +132,15 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     filter_cargo.extend(args.iter().map(OsString::as_os_str));
     filter_cargo.insert(2, OsStr::new("--filter-cargo"));
 
-    // Filter stdout through `cat` (i.e. do nothing with it), and filter stderr
-    // through a second invocation of `cargo-llvm-lines`, but with
+    // Filter stderr through a second invocation of `cargo-llvm-lines` that has
     // `--filter-cargo` specified so that it just does the filtering in
     // `filter_err()` above.
     let _wait = {
-        cmd.stdout(Stdio::piped());
+        cmd.stdout(Stdio::inherit());
         cmd.stderr(Stdio::piped());
 
         let mut child = cmd.spawn()?;
-
-        let stdout = child.stdout.take().ok_or(io::ErrorKind::BrokenPipe)?;
         let stderr = child.stderr.take().ok_or(io::ErrorKind::BrokenPipe)?;
-
-        cmd = Command::new("cat");
-        cmd.stdin(stdout);
 
         let mut errcmd = Command::new(filter_cargo[0]);
         errcmd.args(&filter_cargo[1..]);
@@ -156,7 +150,6 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
         let spawn = errcmd.spawn()?;
         Wait(vec![spawn, child])
     };
-    cmd.status()?;
     drop(_wait);
 
     Ok(())
