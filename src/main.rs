@@ -29,7 +29,7 @@ enum Opt {
         setting = AppSettings::AllowExternalSubcommands,
     )]
     LLVMLines {
-        /// Set the sort order to number of instantiations.
+        /// Set column by which to sort output table.
         #[structopt(
             short,
             long,
