@@ -122,14 +122,12 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     cmd.args(&wrap_args(args.clone(), outfile.as_ref()));
     cmd.env("CARGO_INCREMENTAL", "");
 
-    // Duplicate the original command (using `OsStr` for `pipe_to()`), and
-    // insert `--filter-cargo` just after the `cargo-llvm-lines` and
-    // `llvm-lines` arguments.
+    // Duplicate the original command, and insert `--filter-cargo` just after
+    // the `cargo-llvm-lines` and `llvm-lines` arguments.
     //
     // Note: the `--filter-cargo` must be inserted there, rather than appended
     // to the end, so that it comes before a possible `--` arguments. Otherwise
-    // it will be ignored by the recursive invocation done within the
-    // `pipe_to()` call.
+    // it will be ignored by the recursive invocation.
     let mut filter_cargo = Vec::new();
     filter_cargo.extend(args.iter().map(OsString::as_os_str));
     filter_cargo.insert(2, OsStr::new("--filter-cargo"));
@@ -138,7 +136,26 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     // through a second invocation of `cargo-llvm-lines`, but with
     // `--filter-cargo` specified so that it just does the filtering in
     // `filter_err()` above.
-    let _wait = cmd.pipe_to(&[OsStr::new("cat")], &filter_cargo)?;
+    let _wait = {
+        cmd.stdout(Stdio::piped());
+        cmd.stderr(Stdio::piped());
+
+        let mut child = cmd.spawn()?;
+
+        let stdout = child.stdout.take().ok_or(io::ErrorKind::BrokenPipe)?;
+        let stderr = child.stderr.take().ok_or(io::ErrorKind::BrokenPipe)?;
+
+        cmd = Command::new("cat");
+        cmd.stdin(stdout);
+
+        let mut errcmd = Command::new(filter_cargo[0]);
+        errcmd.args(&filter_cargo[1..]);
+        errcmd.stdin(stderr);
+        errcmd.stdout(Stdio::null());
+        errcmd.stderr(Stdio::inherit());
+        let spawn = errcmd.spawn()?;
+        Wait(vec![spawn, child])
+    };
     run(cmd)?;
     drop(_wait);
 
@@ -306,34 +323,6 @@ impl Drop for Wait {
                 let _ = writeln!(&mut io::stderr(), "{}", err);
             }
         }
-    }
-}
-
-trait PipeTo {
-    fn pipe_to(&mut self, out: &[&OsStr], err: &[&OsStr]) -> io::Result<Wait>;
-}
-
-impl PipeTo for Command {
-    fn pipe_to(&mut self, out: &[&OsStr], err: &[&OsStr]) -> io::Result<Wait> {
-        self.stdout(Stdio::piped());
-        self.stderr(Stdio::piped());
-
-        let mut child = self.spawn()?;
-
-        let stdout = child.stdout.take().ok_or(io::ErrorKind::BrokenPipe)?;
-        let stderr = child.stderr.take().ok_or(io::ErrorKind::BrokenPipe)?;
-
-        *self = Command::new(out[0]);
-        self.args(&out[1..]);
-        self.stdin(stdout);
-
-        let mut errcmd = Command::new(err[0]);
-        errcmd.args(&err[1..]);
-        errcmd.stdin(stderr);
-        errcmd.stdout(Stdio::null());
-        errcmd.stderr(Stdio::inherit());
-        let spawn = errcmd.spawn()?;
-        Ok(Wait(vec![spawn, child]))
     }
 }
 
