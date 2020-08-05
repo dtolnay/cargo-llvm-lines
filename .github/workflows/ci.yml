@@ -7,12 +7,16 @@ on:
 
 jobs:
   test:
-    name: Rust ${{matrix.rust}}
-    runs-on: ubuntu-latest
+    name: Rust ${{matrix.rust}} on ${{matrix.target || 'Linux'}}
+    runs-on: ${{matrix.os || 'ubuntu'}}-latest
     strategy:
       fail-fast: false
       matrix:
         rust: [nightly, beta, stable, 1.34.0]
+        include:
+          - rust: nightly
+            target: Windows
+            os: windows
     steps:
       - uses: actions/checkout@v2
       - uses: dtolnay/rust-toolchain@master
