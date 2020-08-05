@@ -29,11 +29,6 @@ enum Opt {
         setting = AppSettings::AllowExternalSubcommands,
     )]
     LLVMLines {
-        /// Run in a different mode that just filters some Cargo output and
-        /// does nothing else.
-        #[structopt(long, hidden = true)]
-        filter_cargo: bool,
-
         /// Set the sort order to number of instantiations.
         #[structopt(
             short,
@@ -63,6 +58,11 @@ enum Opt {
         profile: Option<String>,
         #[structopt(long, hidden = true)]
         release: bool,
+
+        // Run in a different mode that just filters some Cargo output and does
+        // nothing else.
+        #[structopt(long, hidden = true)]
+        filter_cargo: bool,
     },
 }
 
