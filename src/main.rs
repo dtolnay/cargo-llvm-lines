@@ -13,7 +13,7 @@ use std::ffi::{OsStr, OsString};
 use std::fs::{self, File};
 use std::io::{self, ErrorKind, Read, Write};
 use std::path::{Path, PathBuf};
-use std::process::{self, Child, Command, Stdio};
+use std::process::{self, Command, Stdio};
 use structopt::StructOpt;
 use tempdir::TempDir;
 
@@ -90,17 +90,9 @@ fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32
     let outdir = TempDir::new("cargo-llvm-lines").expect("failed to create tmp file");
     let outfile = outdir.path().join("crate");
 
-    if let Err(err) = run_cargo_rustc(outfile) {
-        if cfg!(windows) {
-            // Running on Windows tends to fail with "System cannot find the
-            // file specified. (os error 2)" even when the original command
-            // succeeded and the output IR has been written to the outfile. Just
-            // log the error and try to read IR anyway. Let read_llvm_ir fail in
-            // the case that something really went wrong.
-            eprintln!("Unsuccessful `cargo rustc` invocation: {}", err);
-        } else {
-            return Err(err);
-        }
+    let exit = run_cargo_rustc(outfile)?;
+    if exit != 0 {
+        return Ok(exit);
     }
 
     let ir = read_llvm_ir(outdir)?;
@@ -109,7 +101,7 @@ fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32
     Ok(0)
 }
 
-fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
+fn run_cargo_rustc(outfile: PathBuf) -> io::Result<i32> {
     let mut cmd = Command::new("cargo");
 
     // Strip out options that are for cargo-llvm-lines itself.
@@ -120,29 +112,34 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
         })
         .collect();
     cmd.args(&wrap_args(args.clone(), outfile.as_ref()));
-    cmd.env("CARGO_INCREMENTAL", "");
 
-    // Duplicate the original command (using `OsStr` for `pipe_to()`), and
-    // insert `--filter-cargo` just after the `cargo-llvm-lines` and
-    // `llvm-lines` arguments.
+    cmd.env("CARGO_INCREMENTAL", "");
+    cmd.stdout(Stdio::inherit());
+    cmd.stderr(Stdio::piped());
+    let mut child = cmd.spawn()?;
+
+    // Duplicate the original command, and insert `--filter-cargo` just after
+    // the `cargo-llvm-lines` and `llvm-lines` arguments.
     //
     // Note: the `--filter-cargo` must be inserted there, rather than appended
     // to the end, so that it comes before a possible `--` arguments. Otherwise
-    // it will be ignored by the recursive invocation done within the
-    // `pipe_to()` call.
+    // it will be ignored by the recursive invocation.
     let mut filter_cargo = Vec::new();
     filter_cargo.extend(args.iter().map(OsString::as_os_str));
     filter_cargo.insert(2, OsStr::new("--filter-cargo"));
 
-    // Filter stdout through `cat` (i.e. do nothing with it), and filter stderr
-    // through a second invocation of `cargo-llvm-lines`, but with
+    // Filter stderr through a second invocation of `cargo-llvm-lines` that has
     // `--filter-cargo` specified so that it just does the filtering in
     // `filter_err()` above.
-    let _wait = cmd.pipe_to(&[OsStr::new("cat")], &filter_cargo)?;
-    run(cmd)?;
-    drop(_wait);
+    let mut errcmd = Command::new(filter_cargo[0]);
+    errcmd.args(&filter_cargo[1..]);
+    errcmd.stdin(child.stderr.take().ok_or(io::ErrorKind::BrokenPipe)?);
+    errcmd.stdout(Stdio::null());
+    errcmd.stderr(Stdio::inherit());
+    let mut errchild = errcmd.spawn()?;
 
-    Ok(())
+    errchild.wait()?;
+    child.wait().map(|status| status.code().unwrap_or(1))
 }
 
 fn read_llvm_ir(outdir: TempDir) -> io::Result<String> {
@@ -291,50 +288,6 @@ fn has_hash(name: &str) -> bool {
 
 fn is_ascii_hexdigit(byte: u8) -> bool {
     byte >= b'0' && byte <= b'9' || byte >= b'a' && byte <= b'f'
-}
-
-fn run(mut cmd: Command) -> io::Result<i32> {
-    cmd.status().map(|status| status.code().unwrap_or(1))
-}
-
-struct Wait(Vec<Child>);
-
-impl Drop for Wait {
-    fn drop(&mut self) {
-        for child in &mut self.0 {
-            if let Err(err) = child.wait() {
-                let _ = writeln!(&mut io::stderr(), "{}", err);
-            }
-        }
-    }
-}
-
-trait PipeTo {
-    fn pipe_to(&mut self, out: &[&OsStr], err: &[&OsStr]) -> io::Result<Wait>;
-}
-
-impl PipeTo for Command {
-    fn pipe_to(&mut self, out: &[&OsStr], err: &[&OsStr]) -> io::Result<Wait> {
-        self.stdout(Stdio::piped());
-        self.stderr(Stdio::piped());
-
-        let mut child = self.spawn()?;
-
-        let stdout = child.stdout.take().ok_or(io::ErrorKind::BrokenPipe)?;
-        let stderr = child.stderr.take().ok_or(io::ErrorKind::BrokenPipe)?;
-
-        *self = Command::new(out[0]);
-        self.args(&out[1..]);
-        self.stdin(stdout);
-
-        let mut errcmd = Command::new(err[0]);
-        errcmd.args(&err[1..]);
-        errcmd.stdin(stderr);
-        errcmd.stdout(Stdio::null());
-        errcmd.stderr(Stdio::inherit());
-        let spawn = errcmd.spawn()?;
-        Ok(Wait(vec![spawn, child]))
-    }
 }
 
 // Based on https://github.com/rsolomo/cargo-check
