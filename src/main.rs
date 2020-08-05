@@ -25,6 +25,7 @@ enum Opt {
         name = "llvm-lines",
         author,
         about = "Print amount of lines of LLVM IR that is generated for the current project",
+        usage = "cargo llvm-lines [OPTIONS]",
         setting = AppSettings::AllowExternalSubcommands,
     )]
     LLVMLines {
