@@ -34,6 +34,7 @@ enum Opt {
             short,
             long,
             possible_values = &SortOrder::variants(),
+            value_name = "order",
             case_insensitive = true,
             default_value = "lines",
         )]
