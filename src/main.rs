@@ -156,7 +156,7 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
         let spawn = errcmd.spawn()?;
         Wait(vec![spawn, child])
     };
-    cmd.status().map(|status| status.code().unwrap_or(1))?;
+    cmd.status()?;
     drop(_wait);
 
     Ok(())
