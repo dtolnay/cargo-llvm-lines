@@ -13,7 +13,7 @@ use std::ffi::{OsStr, OsString};
 use std::fs::{self, File};
 use std::io::{self, ErrorKind, Read, Write};
 use std::path::{Path, PathBuf};
-use std::process::{self, Child, Command, Stdio};
+use std::process::{self, Command, Stdio};
 use structopt::StructOpt;
 use tempdir::TempDir;
 
@@ -135,7 +135,7 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     // Filter stderr through a second invocation of `cargo-llvm-lines` that has
     // `--filter-cargo` specified so that it just does the filtering in
     // `filter_err()` above.
-    let _wait = {
+    let wait = {
         cmd.stdout(Stdio::inherit());
         cmd.stderr(Stdio::piped());
 
@@ -148,9 +148,13 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
         errcmd.stdout(Stdio::null());
         errcmd.stderr(Stdio::inherit());
         let spawn = errcmd.spawn()?;
-        Wait(vec![spawn, child])
+        vec![spawn, child]
     };
-    drop(_wait);
+    for mut child in wait {
+        if let Err(err) = child.wait() {
+            let _ = writeln!(&mut io::stderr(), "{}", err);
+        }
+    }
 
     Ok(())
 }
@@ -301,18 +305,6 @@ fn has_hash(name: &str) -> bool {
 
 fn is_ascii_hexdigit(byte: u8) -> bool {
     byte >= b'0' && byte <= b'9' || byte >= b'a' && byte <= b'f'
-}
-
-struct Wait(Vec<Child>);
-
-impl Drop for Wait {
-    fn drop(&mut self) {
-        for child in &mut self.0 {
-            if let Err(err) = child.wait() {
-                let _ = writeln!(&mut io::stderr(), "{}", err);
-            }
-        }
-    }
 }
 
 // Based on https://github.com/rsolomo/cargo-check
