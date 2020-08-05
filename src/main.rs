@@ -90,14 +90,18 @@ fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32
     let outdir = TempDir::new("cargo-llvm-lines").expect("failed to create tmp file");
     let outfile = outdir.path().join("crate");
 
-    run_cargo_rustc(outfile)?;
+    let exit = run_cargo_rustc(outfile)?;
+    if exit != 0 {
+        return Ok(exit);
+    }
+
     let ir = read_llvm_ir(outdir)?;
     count_lines(ir, sort_order);
 
     Ok(0)
 }
 
-fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
+fn run_cargo_rustc(outfile: PathBuf) -> io::Result<i32> {
     let mut cmd = Command::new("cargo");
 
     // Strip out options that are for cargo-llvm-lines itself.
@@ -132,15 +136,10 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     errcmd.stdin(child.stderr.take().ok_or(io::ErrorKind::BrokenPipe)?);
     errcmd.stdout(Stdio::null());
     errcmd.stderr(Stdio::inherit());
-    let errchild = errcmd.spawn()?;
+    let mut errchild = errcmd.spawn()?;
 
-    for child in &mut [errchild, child] {
-        if let Err(err) = child.wait() {
-            let _ = writeln!(&mut io::stderr(), "{}", err);
-        }
-    }
-
-    Ok(())
+    errchild.wait()?;
+    child.wait().map(|status| status.code().unwrap_or(1))
 }
 
 fn read_llvm_ir(outdir: TempDir) -> io::Result<String> {
