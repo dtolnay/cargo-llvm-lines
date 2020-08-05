@@ -135,22 +135,20 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     // Filter stderr through a second invocation of `cargo-llvm-lines` that has
     // `--filter-cargo` specified so that it just does the filtering in
     // `filter_err()` above.
-    let wait = {
-        cmd.stdout(Stdio::inherit());
-        cmd.stderr(Stdio::piped());
+    cmd.stdout(Stdio::inherit());
+    cmd.stderr(Stdio::piped());
 
-        let mut child = cmd.spawn()?;
-        let stderr = child.stderr.take().ok_or(io::ErrorKind::BrokenPipe)?;
+    let mut child = cmd.spawn()?;
+    let stderr = child.stderr.take().ok_or(io::ErrorKind::BrokenPipe)?;
 
-        let mut errcmd = Command::new(filter_cargo[0]);
-        errcmd.args(&filter_cargo[1..]);
-        errcmd.stdin(stderr);
-        errcmd.stdout(Stdio::null());
-        errcmd.stderr(Stdio::inherit());
-        let spawn = errcmd.spawn()?;
-        vec![spawn, child]
-    };
-    for mut child in wait {
+    let mut errcmd = Command::new(filter_cargo[0]);
+    errcmd.args(&filter_cargo[1..]);
+    errcmd.stdin(stderr);
+    errcmd.stdout(Stdio::null());
+    errcmd.stderr(Stdio::inherit());
+    let spawn = errcmd.spawn()?;
+
+    for child in &mut [spawn, child] {
         if let Err(err) = child.wait() {
             let _ = writeln!(&mut io::stderr(), "{}", err);
         }
