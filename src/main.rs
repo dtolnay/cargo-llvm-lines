@@ -120,7 +120,11 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
         })
         .collect();
     cmd.args(&wrap_args(args.clone(), outfile.as_ref()));
+
     cmd.env("CARGO_INCREMENTAL", "");
+    cmd.stdout(Stdio::inherit());
+    cmd.stderr(Stdio::piped());
+    let mut child = cmd.spawn()?;
 
     // Duplicate the original command, and insert `--filter-cargo` just after
     // the `cargo-llvm-lines` and `llvm-lines` arguments.
@@ -132,10 +136,6 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     filter_cargo.extend(args.iter().map(OsString::as_os_str));
     filter_cargo.insert(2, OsStr::new("--filter-cargo"));
 
-    cmd.stdout(Stdio::inherit());
-    cmd.stderr(Stdio::piped());
-    let mut child = cmd.spawn()?;
-
     // Filter stderr through a second invocation of `cargo-llvm-lines` that has
     // `--filter-cargo` specified so that it just does the filtering in
     // `filter_err()` above.
@@ -144,9 +144,9 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
     errcmd.stdin(child.stderr.take().ok_or(io::ErrorKind::BrokenPipe)?);
     errcmd.stdout(Stdio::null());
     errcmd.stderr(Stdio::inherit());
-    let spawn = errcmd.spawn()?;
+    let errchild = errcmd.spawn()?;
 
-    for child in &mut [spawn, child] {
+    for child in &mut [errchild, child] {
         if let Err(err) = child.wait() {
             let _ = writeln!(&mut io::stderr(), "{}", err);
         }
