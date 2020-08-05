@@ -156,7 +156,7 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<()> {
         let spawn = errcmd.spawn()?;
         Wait(vec![spawn, child])
     };
-    run(cmd)?;
+    cmd.status().map(|status| status.code().unwrap_or(1))?;
     drop(_wait);
 
     Ok(())
@@ -308,10 +308,6 @@ fn has_hash(name: &str) -> bool {
 
 fn is_ascii_hexdigit(byte: u8) -> bool {
     byte >= b'0' && byte <= b'9' || byte >= b'a' && byte <= b'f'
-}
-
-fn run(mut cmd: Command) -> io::Result<i32> {
-    cmd.status().map(|status| status.code().unwrap_or(1))
 }
 
 struct Wait(Vec<Child>);
