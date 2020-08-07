@@ -33,6 +33,7 @@ enum Opt {
         about = ABOUT,
         usage = "cargo llvm-lines [OPTIONS]",
         setting = AppSettings::AllowExternalSubcommands,
+        setting = AppSettings::DeriveDisplayOrder,
         setting = AppSettings::UnifiedHelpMessage,
         help_message = "",
         version_message = "",
@@ -50,24 +51,24 @@ enum Opt {
         sort: SortOrder,
 
         // All these options are passed through to the `rustc` invocation.
+        #[structopt(short, long, value_name = "SPEC")]
+        package: Option<String>,
         #[structopt(long)]
-        all_features: bool,
+        lib: bool,
         #[structopt(long, value_name = "BIN")]
         bin: Option<String>,
+        #[structopt(long)]
+        release: bool,
+        #[structopt(long, value_name = "PROFILE-NAME")]
+        profile: Option<String>,
         #[structopt(long, value_name = "FEATURES")]
         features: Option<String>,
         #[structopt(long)]
-        lib: bool,
-        #[structopt(long, value_name = "PATH")]
-        manifest_path: Option<String>,
+        all_features: bool,
         #[structopt(long)]
         no_default_features: bool,
-        #[structopt(short, long, value_name = "SPEC")]
-        package: Option<String>,
-        #[structopt(long, value_name = "PROFILE-NAME")]
-        profile: Option<String>,
-        #[structopt(long)]
-        release: bool,
+        #[structopt(long, value_name = "PATH")]
+        manifest_path: Option<String>,
 
         // Run in a different mode that just filters some Cargo output and does
         // nothing else.
