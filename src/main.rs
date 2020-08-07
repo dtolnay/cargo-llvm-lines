@@ -43,7 +43,7 @@ enum Opt {
             short,
             long,
             possible_values = &SortOrder::variants(),
-            value_name = "order",
+            value_name = "ORDER",
             case_insensitive = true,
             default_value = "lines",
         )]
@@ -52,19 +52,19 @@ enum Opt {
         // All these options are passed through to the `rustc` invocation.
         #[structopt(long)]
         all_features: bool,
-        #[structopt(long)]
+        #[structopt(long, value_name = "BIN")]
         bin: Option<String>,
-        #[structopt(long)]
+        #[structopt(long, value_name = "FEATURES")]
         features: Option<String>,
         #[structopt(long)]
         lib: bool,
-        #[structopt(long)]
+        #[structopt(long, value_name = "PATH")]
         manifest_path: Option<String>,
         #[structopt(long)]
         no_default_features: bool,
-        #[structopt(short, long)]
+        #[structopt(short, long, value_name = "SPEC")]
         package: Option<String>,
-        #[structopt(long)]
+        #[structopt(long, value_name = "PROFILE-NAME")]
         profile: Option<String>,
         #[structopt(long)]
         release: bool,
