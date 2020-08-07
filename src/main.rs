@@ -18,15 +18,24 @@ use std::str::FromStr;
 use structopt::StructOpt;
 use tempdir::TempDir;
 
+const ABOUT: &str = "
+Print amount of lines of LLVM IR that is generated for the current project.
+
+Options shown below without an explanation mean the same thing as the
+corresponding option of `cargo build`.";
+
 #[derive(StructOpt, Debug)]
 #[structopt(name = "cargo-llvm-lines", bin_name = "cargo")]
 enum Opt {
     #[structopt(
         name = "llvm-lines",
         author,
-        about = "Print amount of lines of LLVM IR that is generated for the current project",
+        about = ABOUT,
         usage = "cargo llvm-lines [OPTIONS]",
         setting = AppSettings::AllowExternalSubcommands,
+        setting = AppSettings::UnifiedHelpMessage,
+        help_message = "",
+        version_message = "",
     )]
     LLVMLines {
         /// Set column by which to sort output table.
@@ -41,23 +50,23 @@ enum Opt {
         sort: SortOrder,
 
         // All these options are passed through to the `rustc` invocation.
-        #[structopt(long, hidden = true)]
+        #[structopt(long)]
         all_features: bool,
-        #[structopt(long, hidden = true)]
+        #[structopt(long)]
         bin: Option<String>,
-        #[structopt(long, hidden = true)]
+        #[structopt(long)]
         features: Option<String>,
-        #[structopt(long, hidden = true)]
+        #[structopt(long)]
         lib: bool,
-        #[structopt(long, hidden = true)]
+        #[structopt(long)]
         manifest_path: Option<String>,
-        #[structopt(long, hidden = true)]
+        #[structopt(long)]
         no_default_features: bool,
-        #[structopt(short, long, hidden = true)]
+        #[structopt(short, long)]
         package: Option<String>,
-        #[structopt(long, hidden = true)]
+        #[structopt(long)]
         profile: Option<String>,
-        #[structopt(long, hidden = true)]
+        #[structopt(long)]
         release: bool,
 
         // Run in a different mode that just filters some Cargo output and does
