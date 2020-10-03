@@ -337,7 +337,7 @@ where
             break;
         }
         has_color |= arg.to_str().unwrap_or("").starts_with("--color");
-        args.push(arg.into());
+        args.push(arg);
     }
 
     if !has_color {
