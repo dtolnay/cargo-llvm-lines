@@ -97,14 +97,10 @@ fn main() {
         cargo_llvm_lines(filter_cargo, sort)
     } else {
         // read llvm-lines from files
-        let content = read_llvm_ir_from_paths(&files);
-        match content {
-            Ok(ir) => {
-                count_lines(ir, sort);
-                Ok(0)
-            }
-            Err(err) => Err(err),
-        }
+        read_llvm_ir_from_paths(&files).map(|ir| {
+            count_lines(ir, sort);
+            0
+        })
     };
 
     process::exit(match result {
