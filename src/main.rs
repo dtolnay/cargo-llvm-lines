@@ -32,7 +32,6 @@ enum Opt {
         author,
         about = ABOUT,
         usage = "cargo llvm-lines [OPTIONS]",
-        setting = AppSettings::AllowExternalSubcommands,
         setting = AppSettings::DeriveDisplayOrder,
         setting = AppSettings::UnifiedHelpMessage,
         help_message = "",
