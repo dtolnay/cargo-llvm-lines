@@ -118,20 +118,20 @@ fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32
     let outdir = TempDir::new("cargo-llvm-lines").expect("failed to create tmp file");
     let outfile = outdir.path().join("crate");
 
-    let exit = run_cargo_rustc(outfile)?;
+    let exit = run_cargo_rustc(&outfile)?;
     if exit != 0 {
         return Ok(exit);
     }
 
-    let ir = read_llvm_ir_from_dir(outdir)?;
+    let ir = read_llvm_ir_from_dir(&outdir)?;
     let mut instantiations = Map::<String, Instantiations>::new();
-    count_lines(&mut instantiations, ir);
+    count_lines(&mut instantiations, &ir);
     print_table(instantiations, sort_order);
 
     Ok(0)
 }
 
-fn run_cargo_rustc(outfile: PathBuf) -> io::Result<i32> {
+fn run_cargo_rustc(outfile: &Path) -> io::Result<i32> {
     let mut cmd = Command::new("cargo");
 
     // Strip out options that are for cargo-llvm-lines itself.
@@ -172,7 +172,7 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<i32> {
     child.wait().map(|status| status.code().unwrap_or(1))
 }
 
-fn read_llvm_ir_from_dir(outdir: TempDir) -> io::Result<Vec<u8>> {
+fn read_llvm_ir_from_dir(outdir: &TempDir) -> io::Result<Vec<u8>> {
     for file in fs::read_dir(&outdir)? {
         let path = file?.path();
         if let Some(ext) = path.extension() {
@@ -191,7 +191,7 @@ fn read_llvm_ir_from_paths(paths: &[PathBuf], sort_order: SortOrder) -> io::Resu
 
     for path in paths {
         let ir = fs::read(path)?;
-        count_lines(&mut instantiations, ir);
+        count_lines(&mut instantiations, &ir);
     }
 
     print_table(instantiations, sort_order);
@@ -211,7 +211,7 @@ impl Instantiations {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 enum SortOrder {
     Lines,
     Copies,
@@ -237,7 +237,7 @@ impl FromStr for SortOrder {
     }
 }
 
-fn count_lines(instantiations: &mut Map<String, Instantiations>, ir: Vec<u8>) {
+fn count_lines(instantiations: &mut Map<String, Instantiations>, ir: &[u8]) {
     let mut current_function = None;
     let mut count = 0;
 
