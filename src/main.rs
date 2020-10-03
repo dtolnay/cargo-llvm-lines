@@ -178,9 +178,7 @@ fn read_llvm_ir_from_dir(outdir: TempDir) -> io::Result<Vec<u8>> {
         let path = file?.path();
         if let Some(ext) = path.extension() {
             if ext == "ll" {
-                let mut content = Vec::new();
-                File::open(&path)?.read_to_end(&mut content)?;
-                return Ok(content);
+                return fs::read(path);
             }
         }
     }
