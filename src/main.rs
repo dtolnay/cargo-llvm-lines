@@ -10,8 +10,8 @@ use rustc_demangle::demangle;
 use std::collections::HashMap as Map;
 use std::env;
 use std::ffi::{OsStr, OsString};
-use std::fs::{self, File};
-use std::io::{self, ErrorKind, Read, Write};
+use std::fs;
+use std::io::{self, ErrorKind, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, Stdio};
 use std::str::FromStr;
@@ -92,14 +92,9 @@ fn main() {
     } = Opt::from_args();
 
     let result = if files.is_empty() {
-        // run cargo to get llvm-lines
         cargo_llvm_lines(filter_cargo, sort)
     } else {
-        // read llvm-lines from files
-        read_llvm_ir_from_paths(&files).map(|ir| {
-            count_lines(ir, sort);
-            0
-        })
+        read_llvm_ir_from_paths(&files, sort)
     };
 
     process::exit(match result {
@@ -127,7 +122,9 @@ fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32
     }
 
     let ir = read_llvm_ir_from_dir(outdir)?;
-    count_lines(ir, sort_order);
+    let mut instantiations = Map::<String, Instantiations>::new();
+    count_lines(&mut instantiations, ir);
+    print_table(instantiations, sort_order);
 
     Ok(0)
 }
@@ -187,14 +184,16 @@ fn read_llvm_ir_from_dir(outdir: TempDir) -> io::Result<Vec<u8>> {
     Err(io::Error::new(ErrorKind::Other, msg))
 }
 
-fn read_llvm_ir_from_paths(paths: &[PathBuf]) -> io::Result<Vec<u8>> {
-    // This loads all files into RAM (4.1GB in the case of rustc),
-    // but it only takes seconds, so no need to optimize that.
-    let mut content = Vec::new();
+fn read_llvm_ir_from_paths(paths: &[PathBuf], sort_order: SortOrder) -> io::Result<i32> {
+    let mut instantiations = Map::<String, Instantiations>::new();
+
     for path in paths {
-        File::open(&path)?.read_to_end(&mut content)?;
+        let ir = fs::read(path)?;
+        count_lines(&mut instantiations, ir);
     }
-    Ok(content)
+
+    print_table(instantiations, sort_order);
+    Ok(0)
 }
 
 #[derive(Default)]
@@ -236,12 +235,11 @@ impl FromStr for SortOrder {
     }
 }
 
-fn count_lines(content: Vec<u8>, sort_order: SortOrder) {
-    let mut instantiations = Map::<String, Instantiations>::new();
+fn count_lines(instantiations: &mut Map<String, Instantiations>, ir: Vec<u8>) {
     let mut current_function = None;
     let mut count = 0;
 
-    for line in String::from_utf8_lossy(&content).lines() {
+    for line in String::from_utf8_lossy(&ir).lines() {
         if line.starts_with("define ") {
             current_function = parse_function_name(line);
         } else if line == "}" {
@@ -256,7 +254,9 @@ fn count_lines(content: Vec<u8>, sort_order: SortOrder) {
             count += 1;
         }
     }
+}
 
+fn print_table(instantiations: Map<String, Instantiations>, sort_order: SortOrder) {
     let mut data = instantiations.into_iter().collect::<Vec<_>>();
 
     let mut total = Instantiations {
