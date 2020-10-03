@@ -92,7 +92,10 @@ fn main() {
         ..
     } = Opt::from_args();
 
-    let result = if files.len() > 0 {
+    let result = if files.is_empty() {
+        // run cargo to get llvm-lines
+        cargo_llvm_lines(filter_cargo, sort)
+    } else {
         // read llvm-lines from files
         let content = read_llvm_ir_from_paths(&files);
         match content {
@@ -102,9 +105,6 @@ fn main() {
             }
             Err(err) => Err(err),
         }
-    } else {
-        // run cargo to get llvm-lines
-        cargo_llvm_lines(filter_cargo, sort)
     };
 
     process::exit(match result {
