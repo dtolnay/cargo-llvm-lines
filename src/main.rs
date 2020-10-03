@@ -194,7 +194,7 @@ fn read_llvm_ir_from_dir(outdir: TempDir) -> io::Result<String> {
     Err(io::Error::new(ErrorKind::Other, msg))
 }
 
-fn read_llvm_ir_from_paths(paths: &Vec<PathBuf>) -> io::Result<String> {
+fn read_llvm_ir_from_paths(paths: &[PathBuf]) -> io::Result<String> {
     // This loads all files into RAM (4.1GB in the case of rustc),
     // but it only takes seconds, so no need to optimize that.
     let mut content = String::new();
