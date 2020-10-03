@@ -265,7 +265,7 @@ fn print_table(instantiations: Map<String, Instantiations>, sort_order: SortOrde
         copies: 0,
         total_lines: 0,
     };
-    for row in data.iter() {
+    for row in &data {
         total.copies += row.1.copies;
         total.total_lines += row.1.total_lines;
     }
