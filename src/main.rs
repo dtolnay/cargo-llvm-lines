@@ -17,7 +17,6 @@ use std::process::{self, Command, Stdio};
 use std::str::FromStr;
 use structopt::StructOpt;
 use tempdir::TempDir;
-use glob::glob;
 
 const ABOUT: &str = "
 Print amount of lines of LLVM IR that is generated for the current project.
@@ -95,7 +94,7 @@ fn main() {
 
     let result = if files.len() > 0 {
         // read llvm-lines from files
-        let content = read_llvm_ir_from_glob(&files);
+        let content = read_llvm_ir_from_paths(&files);
         match content {
             Ok(ir) => {
                 count_lines(ir, sort);
@@ -195,17 +194,14 @@ fn read_llvm_ir_from_dir(outdir: TempDir) -> io::Result<String> {
     Err(io::Error::new(ErrorKind::Other, msg))
 }
 
-fn read_llvm_ir_from_glob(globs: &Vec<String>) -> io::Result<String> {
+fn read_llvm_ir_from_paths(paths: &Vec<String>) -> io::Result<String> {
     // This loads all files into RAM (4.1GB in the case of rustc),
     // but it only takes seconds, so no need to optimize that.
     let mut content = String::new();
-    for file_glob in globs {
-        for entry in glob(file_glob).expect(&format!("Failed to read glob pattern '{}'", file_glob)) {
-            let path = entry.map_err(|err| io::Error::new(ErrorKind::Other, err))?;
-            if let Some(ext) = path.extension() {
-                if ext == "ll" {
-                    File::open(&path)?.read_to_string(&mut content)?;
-                }
+    for path in paths {
+        if let Some(ext) = Path::new(&path).extension() {
+            if ext == "ll" {
+                File::open(&path)?.read_to_string(&mut content)?;
             }
         }
     }
