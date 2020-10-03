@@ -17,6 +17,7 @@ use std::process::{self, Command, Stdio};
 use std::str::FromStr;
 use structopt::StructOpt;
 use tempdir::TempDir;
+use glob::glob;
 
 const ABOUT: &str = "
 Print amount of lines of LLVM IR that is generated for the current project.
@@ -50,6 +51,17 @@ enum Opt {
         )]
         sort: SortOrder,
 
+        /// Analyze .ll files that were produced by eg. `RUSTFLAGS="--emit=llvm-ir" ./x.py build --stage 0 compiler/rustc`.
+        /// Supports globs, eg `./build/x86_64-unknown-linux-gnu/stage0-rustc/x86_64-unknown-linux-gnu/debug/deps/*.ll`
+        // zsh substitutes the glob with a list of files, therefore this needs to be a Vec.
+        #[structopt(short, long, value_name = "FILES")]
+        files: Vec<String>,
+
+        // Run in a different mode that just filters some Cargo output and does
+        // nothing else.
+        #[structopt(long, hidden = true)]
+        filter_cargo: bool,
+
         // All these options are passed through to the `rustc` invocation.
         #[structopt(short, long, value_name = "SPEC")]
         package: Option<String>,
@@ -71,20 +83,28 @@ enum Opt {
         no_default_features: bool,
         #[structopt(long, value_name = "PATH")]
         manifest_path: Option<String>,
-
-        // Run in a different mode that just filters some Cargo output and does
-        // nothing else.
-        #[structopt(long, hidden = true)]
-        filter_cargo: bool,
     },
 }
 
 fn main() {
     let Opt::LLVMLines {
-        filter_cargo, sort, ..
+        filter_cargo, sort, files, ..
     } = Opt::from_args();
 
-    let result = cargo_llvm_lines(filter_cargo, sort);
+    let result = if files.len() > 0 {
+        // read llvm-lines from files
+        let content = read_llvm_ir_from_glob(&files);
+        match content {
+            Ok(ir) => {
+                count_lines(ir, sort);
+                Ok(0)
+            },
+            Err(err) => Err(err)
+        }
+    } else {
+        // run cargo to get llvm-lines
+        cargo_llvm_lines(filter_cargo, sort)
+    };
 
     process::exit(match result {
         Ok(code) => code,
@@ -110,7 +130,7 @@ fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32
         return Ok(exit);
     }
 
-    let ir = read_llvm_ir(outdir)?;
+    let ir = read_llvm_ir_from_dir(outdir)?;
     count_lines(ir, sort_order);
 
     Ok(0)
@@ -157,7 +177,7 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<i32> {
     child.wait().map(|status| status.code().unwrap_or(1))
 }
 
-fn read_llvm_ir(outdir: TempDir) -> io::Result<String> {
+fn read_llvm_ir_from_dir(outdir: TempDir) -> io::Result<String> {
     for file in fs::read_dir(&outdir)? {
         let path = file?.path();
         if let Some(ext) = path.extension() {
@@ -171,6 +191,23 @@ fn read_llvm_ir(outdir: TempDir) -> io::Result<String> {
 
     let msg = "Ran --emit=llvm-ir but did not find output IR";
     Err(io::Error::new(ErrorKind::Other, msg))
+}
+
+fn read_llvm_ir_from_glob(globs: &Vec<String>) -> io::Result<String> {
+    // This loads all files into RAM (4.1GB in the case of rustc),
+    // but it only takes seconds, so no need to optimize that.
+    let mut content = String::new();
+    for file_glob in globs {
+        for entry in glob(file_glob).expect(&format!("Failed to read glob pattern '{}'", file_glob)) {
+            let path = entry.map_err(|err| io::Error::new(ErrorKind::Other, err))?;
+            if let Some(ext) = path.extension() {
+                if ext == "ll" {
+                    File::open(&path)?.read_to_string(&mut content)?;
+                }
+            }
+        }
+    }
+    Ok(content)
 }
 
 #[derive(Default)]
