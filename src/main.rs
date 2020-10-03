@@ -88,7 +88,10 @@ enum Opt {
 
 fn main() {
     let Opt::LLVMLines {
-        filter_cargo, sort, files, ..
+        filter_cargo,
+        sort,
+        files,
+        ..
     } = Opt::from_args();
 
     let result = if files.len() > 0 {
@@ -98,8 +101,8 @@ fn main() {
             Ok(ir) => {
                 count_lines(ir, sort);
                 Ok(0)
-            },
-            Err(err) => Err(err)
+            }
+            Err(err) => Err(err),
         }
     } else {
         // run cargo to get llvm-lines
