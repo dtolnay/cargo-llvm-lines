@@ -49,6 +49,16 @@ enum Opt {
         )]
         sort: SortOrder,
 
+        /// Analyze existing .ll files that were produced by e.g.
+        /// `RUSTFLAGS="--emit=llvm-ir" ./x.py build --stage 0 compiler/rustc`.
+        #[structopt(short, long, value_name = "FILES", parse(from_os_str))]
+        files: Vec<PathBuf>,
+
+        // Run in a different mode that just filters some Cargo output and does
+        // nothing else.
+        #[structopt(long, hidden = true)]
+        filter_cargo: bool,
+
         // All these options are passed through to the `rustc` invocation.
         #[structopt(short, long, value_name = "SPEC")]
         package: Option<String>,
@@ -70,20 +80,27 @@ enum Opt {
         no_default_features: bool,
         #[structopt(long, value_name = "PATH")]
         manifest_path: Option<String>,
-
-        // Run in a different mode that just filters some Cargo output and does
-        // nothing else.
-        #[structopt(long, hidden = true)]
-        filter_cargo: bool,
     },
 }
 
 fn main() {
     let Opt::LLVMLines {
-        filter_cargo, sort, ..
+        filter_cargo,
+        sort,
+        files,
+        ..
     } = Opt::from_args();
 
-    let result = cargo_llvm_lines(filter_cargo, sort);
+    let result = if files.is_empty() {
+        // run cargo to get llvm-lines
+        cargo_llvm_lines(filter_cargo, sort)
+    } else {
+        // read llvm-lines from files
+        read_llvm_ir_from_paths(&files).map(|ir| {
+            count_lines(ir, sort);
+            0
+        })
+    };
 
     process::exit(match result {
         Ok(code) => code,
@@ -109,7 +126,7 @@ fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32
         return Ok(exit);
     }
 
-    let ir = read_llvm_ir(outdir)?;
+    let ir = read_llvm_ir_from_dir(outdir)?;
     count_lines(ir, sort_order);
 
     Ok(0)
@@ -156,7 +173,7 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<i32> {
     child.wait().map(|status| status.code().unwrap_or(1))
 }
 
-fn read_llvm_ir(outdir: TempDir) -> io::Result<String> {
+fn read_llvm_ir_from_dir(outdir: TempDir) -> io::Result<String> {
     for file in fs::read_dir(&outdir)? {
         let path = file?.path();
         if let Some(ext) = path.extension() {
@@ -170,6 +187,16 @@ fn read_llvm_ir(outdir: TempDir) -> io::Result<String> {
 
     let msg = "Ran --emit=llvm-ir but did not find output IR";
     Err(io::Error::new(ErrorKind::Other, msg))
+}
+
+fn read_llvm_ir_from_paths(paths: &[PathBuf]) -> io::Result<String> {
+    // This loads all files into RAM (4.1GB in the case of rustc),
+    // but it only takes seconds, so no need to optimize that.
+    let mut content = String::new();
+    for path in paths {
+        File::open(&path)?.read_to_string(&mut content)?;
+    }
+    Ok(content)
 }
 
 #[derive(Default)]
