@@ -51,9 +51,8 @@ enum Opt {
         )]
         sort: SortOrder,
 
-        /// Analyze .ll files that were produced by eg. `RUSTFLAGS="--emit=llvm-ir" ./x.py build --stage 0 compiler/rustc`.
-        /// Supports globs, eg `./build/x86_64-unknown-linux-gnu/stage0-rustc/x86_64-unknown-linux-gnu/debug/deps/*.ll`
-        // zsh substitutes the glob with a list of files, therefore this needs to be a Vec.
+        /// Analyze existing .ll files that were produced by e.g.
+        /// `RUSTFLAGS="--emit=llvm-ir" ./x.py build --stage 0 compiler/rustc`.
         #[structopt(short, long, value_name = "FILES")]
         files: Vec<String>,
 
