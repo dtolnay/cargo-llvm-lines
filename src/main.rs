@@ -338,7 +338,7 @@ fn parse_function_name(line: &str) -> Option<String> {
 fn has_hash(name: &str) -> bool {
     let mut bytes = name.bytes().rev();
     for _ in 0..16 {
-        if !bytes.next().map(is_ascii_hexdigit).unwrap_or(false) {
+        if !bytes.next().map_or(false, is_ascii_hexdigit) {
             return false;
         }
     }
