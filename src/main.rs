@@ -52,7 +52,7 @@ enum Opt {
 
         /// Analyze existing .ll files that were produced by e.g.
         /// `RUSTFLAGS="--emit=llvm-ir" ./x.py build --stage 0 compiler/rustc`.
-        #[structopt(short, long, value_name = "FILES")]
+        #[structopt(short, long, value_name = "FILES", parse(from_os_str))]
         files: Vec<PathBuf>,
 
         // Run in a different mode that just filters some Cargo output and does
