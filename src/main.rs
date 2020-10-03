@@ -173,13 +173,13 @@ fn run_cargo_rustc(outfile: PathBuf) -> io::Result<i32> {
     child.wait().map(|status| status.code().unwrap_or(1))
 }
 
-fn read_llvm_ir_from_dir(outdir: TempDir) -> io::Result<String> {
+fn read_llvm_ir_from_dir(outdir: TempDir) -> io::Result<Vec<u8>> {
     for file in fs::read_dir(&outdir)? {
         let path = file?.path();
         if let Some(ext) = path.extension() {
             if ext == "ll" {
-                let mut content = String::new();
-                File::open(&path)?.read_to_string(&mut content)?;
+                let mut content = Vec::new();
+                File::open(&path)?.read_to_end(&mut content)?;
                 return Ok(content);
             }
         }
@@ -189,12 +189,12 @@ fn read_llvm_ir_from_dir(outdir: TempDir) -> io::Result<String> {
     Err(io::Error::new(ErrorKind::Other, msg))
 }
 
-fn read_llvm_ir_from_paths(paths: &[PathBuf]) -> io::Result<String> {
+fn read_llvm_ir_from_paths(paths: &[PathBuf]) -> io::Result<Vec<u8>> {
     // This loads all files into RAM (4.1GB in the case of rustc),
     // but it only takes seconds, so no need to optimize that.
-    let mut content = String::new();
+    let mut content = Vec::new();
     for path in paths {
-        File::open(&path)?.read_to_string(&mut content)?;
+        File::open(&path)?.read_to_end(&mut content)?;
     }
     Ok(content)
 }
@@ -238,12 +238,12 @@ impl FromStr for SortOrder {
     }
 }
 
-fn count_lines(content: String, sort_order: SortOrder) {
+fn count_lines(content: Vec<u8>, sort_order: SortOrder) {
     let mut instantiations = Map::<String, Instantiations>::new();
     let mut current_function = None;
     let mut count = 0;
 
-    for line in content.lines() {
+    for line in String::from_utf8_lossy(&content).lines() {
         if line.starts_with("define ") {
             current_function = parse_function_name(line);
         } else if line == "}" {
