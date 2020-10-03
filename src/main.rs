@@ -199,11 +199,7 @@ fn read_llvm_ir_from_paths(paths: &Vec<PathBuf>) -> io::Result<String> {
     // but it only takes seconds, so no need to optimize that.
     let mut content = String::new();
     for path in paths {
-        if let Some(ext) = path.extension() {
-            if ext == "ll" {
-                File::open(&path)?.read_to_string(&mut content)?;
-            }
-        }
+        File::open(&path)?.read_to_string(&mut content)?;
     }
     Ok(content)
 }
