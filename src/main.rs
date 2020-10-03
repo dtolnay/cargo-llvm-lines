@@ -141,7 +141,7 @@ fn run_cargo_rustc(outfile: &Path) -> io::Result<i32> {
                 .contains(&s.to_string_lossy().as_ref())
         })
         .collect();
-    cmd.args(&wrap_args(args.clone(), outfile.as_ref()));
+    cmd.args(&wrap_args(args.clone(), outfile));
 
     cmd.env("CARGO_INCREMENTAL", "");
     cmd.stdout(Stdio::inherit());
