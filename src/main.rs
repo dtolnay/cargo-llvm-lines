@@ -53,7 +53,7 @@ enum Opt {
         /// Analyze existing .ll files that were produced by e.g.
         /// `RUSTFLAGS="--emit=llvm-ir" ./x.py build --stage 0 compiler/rustc`.
         #[structopt(short, long, value_name = "FILES")]
-        files: Vec<String>,
+        files: Vec<PathBuf>,
 
         // Run in a different mode that just filters some Cargo output and does
         // nothing else.
@@ -194,12 +194,12 @@ fn read_llvm_ir_from_dir(outdir: TempDir) -> io::Result<String> {
     Err(io::Error::new(ErrorKind::Other, msg))
 }
 
-fn read_llvm_ir_from_paths(paths: &Vec<String>) -> io::Result<String> {
+fn read_llvm_ir_from_paths(paths: &Vec<PathBuf>) -> io::Result<String> {
     // This loads all files into RAM (4.1GB in the case of rustc),
     // but it only takes seconds, so no need to optimize that.
     let mut content = String::new();
     for path in paths {
-        if let Some(ext) = Path::new(&path).extension() {
+        if let Some(ext) = path.extension() {
             if ext == "ll" {
                 File::open(&path)?.read_to_string(&mut content)?;
             }
