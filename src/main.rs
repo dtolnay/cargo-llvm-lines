@@ -191,8 +191,13 @@ fn read_llvm_ir_from_paths(paths: &[PathBuf], sort_order: SortOrder) -> io::Resu
     let mut instantiations = Map::<String, Instantiations>::new();
 
     for path in paths {
-        let ir = fs::read(path)?;
-        count_lines(&mut instantiations, &ir);
+        match fs::read(path) {
+            Ok(ir) => count_lines(&mut instantiations, &ir),
+            Err(err) => {
+                let msg = format!("{}: {}", path.display(), err);
+                return Err(io::Error::new(err.kind(), msg));
+            }
+        }
     }
 
     print_table(instantiations, sort_order);
