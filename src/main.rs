@@ -95,6 +95,10 @@ enum Opt {
         no_default_features: bool,
         #[structopt(long, value_name = "PATH")]
         manifest_path: Option<String>,
+
+        // Any additional flags for rustc taken after `--`.
+        #[structopt(last = true)]
+        rest: Vec<OsString>,
     },
 }
 
