@@ -46,7 +46,7 @@ enum Opt {
         author,
         about = ABOUT,
         template = TEMPLATE,
-        usage = "cargo llvm-lines [OPTIONS]",
+        usage = "cargo llvm-lines [OPTIONS] -- [RUSTC OPTIONS]",
         setting = AppSettings::DeriveDisplayOrder,
         setting = AppSettings::UnifiedHelpMessage,
         help_message = "",
