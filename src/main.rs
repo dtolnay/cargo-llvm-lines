@@ -46,7 +46,7 @@ enum Opt {
         author,
         about = ABOUT,
         template = TEMPLATE,
-        usage = "cargo llvm-lines [OPTIONS]",
+        usage = "cargo llvm-lines [OPTIONS] -- [RUSTC OPTIONS]",
         setting = AppSettings::DeriveDisplayOrder,
         setting = AppSettings::UnifiedHelpMessage,
         help_message = "",
@@ -95,6 +95,10 @@ enum Opt {
         no_default_features: bool,
         #[structopt(long, value_name = "PATH")]
         manifest_path: Option<String>,
+
+        // Any additional flags for rustc taken after `--`.
+        #[structopt(last = true, parse(from_os_str))]
+        rest: Vec<OsString>,
     },
 }
 
