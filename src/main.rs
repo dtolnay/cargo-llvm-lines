@@ -27,6 +27,17 @@ Print amount of lines of LLVM IR that is generated for the current project.
 Options shown below without an explanation mean the same thing as the
 corresponding option of `cargo build`.";
 
+const TEMPLATE: &str = "\
+{bin} {version}
+{author}
+{about}
+
+USAGE:
+    {usage}
+
+OPTIONS:
+{unified}";
+
 #[derive(StructOpt, Debug)]
 #[structopt(name = "cargo-llvm-lines", bin_name = "cargo")]
 enum Opt {
@@ -34,6 +45,7 @@ enum Opt {
         name = "llvm-lines",
         author,
         about = ABOUT,
+        template = TEMPLATE,
         usage = "cargo llvm-lines [OPTIONS]",
         setting = AppSettings::DeriveDisplayOrder,
         setting = AppSettings::UnifiedHelpMessage,
