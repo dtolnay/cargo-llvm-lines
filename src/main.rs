@@ -97,7 +97,7 @@ enum Opt {
         manifest_path: Option<String>,
 
         // Any additional flags for rustc taken after `--`.
-        #[structopt(last = true)]
+        #[structopt(last = true, parse(from_os_str))]
         rest: Vec<OsString>,
     },
 }
