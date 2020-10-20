@@ -62,7 +62,7 @@ enum Opt {
         #[structopt(long, hidden = true)]
         filter_cargo: bool,
 
-        // All these options are passed through to the `rustc` invocation.
+        // All these options are passed through to the rustc invocation.
         #[structopt(short, long, value_name = "SPEC")]
         package: Option<String>,
         #[structopt(long)]
