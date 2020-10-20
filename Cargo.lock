@@ -28,7 +28,7 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
 name = "cargo-llvm-lines"
-version = "0.4.8"
+version = "0.4.9"
 dependencies = [
  "atty",
  "clap",
