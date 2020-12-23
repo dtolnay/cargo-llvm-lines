@@ -79,9 +79,9 @@ enum Opt {
         package: Option<String>,
         #[structopt(long)]
         lib: bool,
-        #[structopt(long, value_name = "BIN")]
+        #[structopt(long, value_name = "NAME")]
         bin: Option<String>,
-        #[structopt(long, value_name = "EXAMPLE")]
+        #[structopt(long, value_name = "NAME")]
         example: Option<String>,
         #[structopt(long)]
         release: bool,
