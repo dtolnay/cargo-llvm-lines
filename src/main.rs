@@ -81,6 +81,8 @@ enum Opt {
         lib: bool,
         #[structopt(long, value_name = "BIN")]
         bin: Option<String>,
+        #[structopt(long, value_name = "example")]
+        example: Option<String>,
         #[structopt(long)]
         release: bool,
         #[structopt(long, value_name = "PROFILE-NAME")]
