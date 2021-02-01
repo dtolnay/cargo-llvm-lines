@@ -52,7 +52,7 @@ enum Opt {
         help_message = "",
         version_message = "",
     )]
-    LLVMLines {
+    LlvmLines {
         /// Set column by which to sort output table.
         #[structopt(
             short,
@@ -105,7 +105,7 @@ enum Opt {
 }
 
 fn main() {
-    let Opt::LLVMLines {
+    let Opt::LlvmLines {
         filter_cargo,
         sort,
         files,
