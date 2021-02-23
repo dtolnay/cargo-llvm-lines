@@ -91,10 +91,10 @@ enum Opt {
         features: Option<String>,
         #[structopt(long)]
         all_features: bool,
-        #[structopt(long, value_name = "TRIPLE")]
-        target: Option<String>,
         #[structopt(long)]
         no_default_features: bool,
+        #[structopt(long, value_name = "TRIPLE")]
+        target: Option<String>,
         #[structopt(long, value_name = "PATH")]
         manifest_path: Option<String>,
 
