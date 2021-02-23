@@ -75,6 +75,8 @@ enum Opt {
         filter_cargo: bool,
 
         // All these options are passed through to the cargo rustc invocation.
+        #[structopt(short, long)]
+        quiet: bool,
         #[structopt(short, long, value_name = "SPEC")]
         package: Option<String>,
         #[structopt(long)]
