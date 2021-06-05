@@ -267,7 +267,7 @@ fn count_lines(instantiations: &mut Map<String, Instantiations>, ir: &[u8]) {
     let mut current_function = None;
     let mut count = 0;
 
-    for line in String::from_utf8_lossy(&ir).lines() {
+    for line in String::from_utf8_lossy(ir).lines() {
         if line.starts_with("define ") {
             current_function = parse_function_name(line);
         } else if line == "}" {
