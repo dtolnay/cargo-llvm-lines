@@ -156,7 +156,9 @@ fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32
 }
 
 fn run_cargo_rustc(outfile: &Path) -> io::Result<i32> {
-    let mut cmd = Command::new("cargo");
+    // If cargo-llvm-lines was invoked from cargo, use the cargo that invoked it.
+    let cargo = env::var_os("CARGO").unwrap_or_else(|| OsString::from("cargo"));
+    let mut cmd = Command::new(cargo);
 
     // Strip out options that are for cargo-llvm-lines itself.
     let args: Vec<_> = env::args_os()
