@@ -43,6 +43,7 @@ OPTIONS:
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "cargo-llvm-lines", bin_name = "cargo")]
+#[allow(dead_code)]
 enum Opt {
     #[structopt(
         name = "llvm-lines",
