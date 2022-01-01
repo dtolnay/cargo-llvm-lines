@@ -491,3 +491,8 @@ fn ignore_cargo_err(line: &str) -> bool {
 
     false
 }
+
+#[test]
+fn test_cli() {
+    Opt::into_app().debug_assert();
+}

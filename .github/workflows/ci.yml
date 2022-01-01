@@ -23,6 +23,7 @@ jobs:
         with:
           toolchain: ${{matrix.rust}}
       - run: cargo run -- llvm-lines
+      - run: cargo test
 
   clippy:
     name: Clippy
