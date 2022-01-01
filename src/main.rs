@@ -11,7 +11,7 @@
 )]
 
 use atty::Stream::Stderr;
-use clap::AppSettings;
+use clap::{AppSettings, IntoApp, Parser};
 use rustc_demangle::demangle;
 use std::collections::HashMap as Map;
 use std::env;
@@ -21,7 +21,6 @@ use std::io::{self, ErrorKind, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, Stdio};
 use std::str::FromStr;
-use structopt::StructOpt;
 use tempdir::TempDir;
 
 const ABOUT: &str = "
@@ -39,73 +38,84 @@ USAGE:
     {usage}
 
 OPTIONS:
-{unified}";
+{options}";
 
-#[derive(StructOpt, Debug)]
-#[structopt(name = "cargo-llvm-lines", bin_name = "cargo")]
+#[derive(Parser, Debug)]
+#[clap(
+    name = "cargo-llvm-lines",
+    bin_name = "cargo",
+    author,
+    version,
+    setting = AppSettings::DisableHelpSubcommand,
+)]
 #[allow(dead_code)]
 enum Opt {
-    #[structopt(
+    #[clap(
         name = "llvm-lines",
         author,
+        version,
         about = ABOUT,
-        template = TEMPLATE,
-        usage = "cargo llvm-lines [OPTIONS] -- [RUSTC OPTIONS]",
+        help_template = TEMPLATE,
+        override_usage = "cargo llvm-lines [OPTIONS] -- [RUSTC OPTIONS]",
         setting = AppSettings::DeriveDisplayOrder,
-        setting = AppSettings::UnifiedHelpMessage,
-        help_message = "",
-        version_message = "",
+        setting = AppSettings::DisableHelpFlag,
+        setting = AppSettings::DisableVersionFlag,
     )]
     LlvmLines {
         /// Set column by which to sort output table.
-        #[structopt(
+        #[clap(
             short,
             long,
-            possible_values = &SortOrder::variants(),
+            possible_values = SortOrder::variants(),
             value_name = "ORDER",
-            case_insensitive = true,
+            ignore_case = true,
             default_value = "lines",
         )]
         sort: SortOrder,
 
         /// Analyze existing .ll files that were produced by e.g.
         /// `RUSTFLAGS="--emit=llvm-ir" ./x.py build --stage 0 compiler/rustc`.
-        #[structopt(short, long, value_name = "FILES", parse(from_os_str))]
+        #[clap(short, long, value_name = "FILES", parse(from_os_str))]
         files: Vec<PathBuf>,
 
         // Run in a different mode that just filters some Cargo output and does
         // nothing else.
-        #[structopt(long, hidden = true)]
+        #[clap(long, hide = true)]
         filter_cargo: bool,
 
         // All these options are passed through to the cargo rustc invocation.
-        #[structopt(short, long)]
+        #[clap(short, long)]
         quiet: bool,
-        #[structopt(short, long, value_name = "SPEC")]
+        #[clap(short, long, value_name = "SPEC")]
         package: Option<String>,
-        #[structopt(long)]
+        #[clap(long)]
         lib: bool,
-        #[structopt(long, value_name = "NAME")]
+        #[clap(long, value_name = "NAME")]
         bin: Option<String>,
-        #[structopt(long, value_name = "NAME")]
+        #[clap(long, value_name = "NAME")]
         example: Option<String>,
-        #[structopt(long)]
+        #[clap(long)]
         release: bool,
-        #[structopt(long, value_name = "PROFILE-NAME")]
+        #[clap(long, value_name = "PROFILE-NAME")]
         profile: Option<String>,
-        #[structopt(long, value_name = "FEATURES")]
+        #[clap(long, value_name = "FEATURES")]
         features: Option<String>,
-        #[structopt(long)]
+        #[clap(long)]
         all_features: bool,
-        #[structopt(long)]
+        #[clap(long)]
         no_default_features: bool,
-        #[structopt(long, value_name = "TRIPLE")]
+        #[clap(long, value_name = "TRIPLE")]
         target: Option<String>,
-        #[structopt(long, value_name = "PATH")]
+        #[clap(long, value_name = "PATH")]
         manifest_path: Option<String>,
 
+        #[clap(short, long)]
+        help: bool,
+        #[clap(short = 'V', long)]
+        version: bool,
+
         // Any additional flags for rustc taken after `--`.
-        #[structopt(last = true, parse(from_os_str))]
+        #[clap(last = true, parse(from_os_str))]
         rest: Vec<OsString>,
     },
 }
@@ -115,8 +125,25 @@ fn main() {
         filter_cargo,
         sort,
         files,
+        help,
+        version,
         ..
-    } = Opt::from_args();
+    } = Opt::parse();
+
+    if help {
+        let _ = Opt::into_app()
+            .get_subcommands_mut()
+            .next()
+            .unwrap()
+            .print_help();
+        return;
+    }
+
+    if version {
+        let mut stdout = io::stdout();
+        let _ = stdout.write_all(Opt::into_app().render_version().as_bytes());
+        return;
+    }
 
     let result = if files.is_empty() {
         cargo_llvm_lines(filter_cargo, sort)
