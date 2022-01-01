@@ -489,6 +489,15 @@ fn ignore_cargo_err(line: &str) -> bool {
         }
     }
 
+    // warning: `cratename` (lib) generated 2 warnings
+    if let Some(i) = line.find(") generated ") {
+        let rest = &line[i + ") generated ".len()..];
+        let n = rest.bytes().take_while(u8::is_ascii_digit).count();
+        if n > 0 && rest[n..].starts_with(" warning") {
+            return true;
+        }
+    }
+
     false
 }
 
