@@ -154,7 +154,7 @@ fn main() {
     process::exit(match result {
         Ok(code) => code,
         Err(err) => {
-            let _ = writeln!(&mut io::stderr(), "{}", err);
+            let _ = writeln!(io::stderr(), "{}", err);
             1
         }
     });
@@ -459,7 +459,7 @@ fn filter_err(ignore: fn(&str) -> bool) -> ! {
             break;
         }
         if !ignore(&line) {
-            let _ = write!(&mut io::stderr(), "{}", line);
+            let _ = write!(io::stderr(), "{}", line);
         }
         line.clear();
     }
