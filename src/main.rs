@@ -11,7 +11,7 @@
 )]
 
 use atty::Stream::Stderr;
-use clap::{AppSettings, IntoApp, Parser};
+use clap::{AppSettings, CommandFactory, Parser};
 use rustc_demangle::demangle;
 use std::collections::HashMap as Map;
 use std::env;
@@ -46,7 +46,7 @@ OPTIONS:
     bin_name = "cargo",
     author,
     version,
-    setting = AppSettings::DisableHelpSubcommand,
+    disable_help_subcommand = true
 )]
 #[allow(dead_code)]
 enum Opt {
@@ -58,8 +58,8 @@ enum Opt {
         help_template = TEMPLATE,
         override_usage = "cargo llvm-lines [OPTIONS] -- [RUSTC OPTIONS]",
         setting = AppSettings::DeriveDisplayOrder,
-        setting = AppSettings::DisableHelpFlag,
-        setting = AppSettings::DisableVersionFlag,
+        disable_help_flag = true,
+        disable_version_flag = true,
     )]
     LlvmLines {
         /// Set column by which to sort output table.
@@ -131,7 +131,7 @@ fn main() {
     } = Opt::parse();
 
     if help {
-        let _ = Opt::into_app()
+        let _ = Opt::command()
             .get_subcommands_mut()
             .next()
             .unwrap()
@@ -141,7 +141,7 @@ fn main() {
 
     if version {
         let mut stdout = io::stdout();
-        let _ = stdout.write_all(Opt::into_app().render_version().as_bytes());
+        let _ = stdout.write_all(Opt::command().render_version().as_bytes());
         return;
     }
 
@@ -503,5 +503,5 @@ fn ignore_cargo_err(line: &str) -> bool {
 
 #[test]
 fn test_cli() {
-    Opt::into_app().debug_assert();
+    Opt::command().debug_assert();
 }
