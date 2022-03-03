@@ -25,6 +25,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{matrix.rust}}
+      - run: cargo update
       - run: cargo run -- llvm-lines
       - run: cargo test
 
@@ -35,6 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: dtolnay/rust-toolchain@clippy
+      - run: cargo update
       - run: cargo clippy -- -Dclippy::all -Dclippy::pedantic
 
   outdated:
