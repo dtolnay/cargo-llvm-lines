@@ -56,23 +56,24 @@ $ cargo llvm-lines | head -20
 
 ## Multicrate Projects
 
-Interpreting the output in the presense of multiple crates and generics can be
-tricky. `cargo llvm-lines` only shows the contribution of the leaf crate,
-dependencies are excluded. To asses the contribution of an intermediate crate,
-you can use `-p` flag:
+Interpreting the output in the presence of multiple crates and generics can be
+tricky. `cargo llvm-lines` only shows the contribution of the root crate;
+dependencies are not included. To assess the contribution of an intermediate
+crate, use the `-p` flag:
 
-```
+```console
 $ cargo llvm-lines -p some-depenency
 ```
 
-Note however, that Rust generics are monomorphised -- a generic function will be
-accounted for in the crates that use it, rather than in the defining crate.
+Note however, that Rust generics are monomorphised &mdash; a generic function
+will be accounted for in the crates that use it, rather than in the defining
+crate.
 
-There is a trick to get a holistic view -- enabling link time optimization
-causes all code generation to happen in the leaf crate. So, you can use the
-following invocation to get the whole picture:
+There is a trick to get a holistic view: enabling link time optimization causes
+all code generation to happen in the root crate. So you can use the following
+invocation to get a full picture:
 
-```
+```console
 $ CARGO_PROFILE_RELEASE_LTO=fat cargo llvm-lines --release
 ```
 
