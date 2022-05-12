@@ -30,10 +30,17 @@ name = "cargo-llvm-lines"
 version = "0.4.14"
 dependencies = [
  "atty",
+ "cargo-subcommand-metadata",
  "clap",
  "rustc-demangle",
  "tempdir",
 ]
+
+[[package]]
+name = "cargo-subcommand-metadata"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a33d3b80a8db16c4ad7676653766a8e59b5f95443c8823cb7cff587b90cb91ba"
 
 [[package]]
 name = "clap"

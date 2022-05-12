@@ -23,6 +23,10 @@ use std::process::{self, Command, Stdio};
 use std::str::FromStr;
 use tempdir::TempDir;
 
+cargo_subcommand_metadata::description!(
+    "Count the number of lines of LLVM IR across all instantiations of a generic function"
+);
+
 const ABOUT: &str = "
 Print amount of lines of LLVM IR that is generated for the current project.
 
