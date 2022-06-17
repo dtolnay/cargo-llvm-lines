@@ -20,7 +20,6 @@ use std::fs;
 use std::io::{self, ErrorKind, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, Stdio};
-use std::str::FromStr;
 use tempdir::TempDir;
 
 cargo_subcommand_metadata::description!(
@@ -279,26 +278,6 @@ impl Instantiations {
 enum SortOrder {
     Lines,
     Copies,
-}
-
-impl SortOrder {
-    fn variants() -> [&'static str; 2] {
-        ["lines", "copies"]
-    }
-}
-
-impl FromStr for SortOrder {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.eq_ignore_ascii_case("lines") {
-            Ok(SortOrder::Lines)
-        } else if s.eq_ignore_ascii_case("copies") {
-            Ok(SortOrder::Copies)
-        } else {
-            Err(format!("valid values: {}", Self::variants().join(", ")))
-        }
-    }
 }
 
 fn count_lines(instantiations: &mut Map<String, Instantiations>, ir: &[u8]) {
