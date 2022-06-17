@@ -11,7 +11,7 @@
 )]
 
 use atty::Stream::Stderr;
-use clap::{AppSettings, CommandFactory, Parser};
+use clap::{AppSettings, CommandFactory, Parser, ValueEnum};
 use rustc_demangle::demangle;
 use std::collections::HashMap as Map;
 use std::env;
@@ -70,56 +70,57 @@ enum Opt {
         #[clap(
             short,
             long,
-            possible_values = SortOrder::variants(),
+            value_enum,
             value_name = "ORDER",
             ignore_case = true,
-            default_value = "lines",
+            default_value_t = SortOrder::Lines,
+            action,
         )]
         sort: SortOrder,
 
         /// Analyze existing .ll files that were produced by e.g.
         /// `RUSTFLAGS="--emit=llvm-ir" ./x.py build --stage 0 compiler/rustc`.
-        #[clap(short, long, value_name = "FILES", parse(from_os_str))]
+        #[clap(short, long, value_name = "FILES", action)]
         files: Vec<PathBuf>,
 
         // Run in a different mode that just filters some Cargo output and does
         // nothing else.
-        #[clap(long, hide = true)]
+        #[clap(long, hide = true, action)]
         filter_cargo: bool,
 
         // All these options are passed through to the cargo rustc invocation.
-        #[clap(short, long)]
+        #[clap(short, long, action)]
         quiet: bool,
-        #[clap(short, long, value_name = "SPEC")]
+        #[clap(short, long, value_name = "SPEC", action)]
         package: Option<String>,
-        #[clap(long)]
+        #[clap(long, action)]
         lib: bool,
-        #[clap(long, value_name = "NAME")]
+        #[clap(long, value_name = "NAME", action)]
         bin: Option<String>,
-        #[clap(long, value_name = "NAME")]
+        #[clap(long, value_name = "NAME", action)]
         example: Option<String>,
-        #[clap(long)]
+        #[clap(long, action)]
         release: bool,
-        #[clap(long, value_name = "PROFILE-NAME")]
+        #[clap(long, value_name = "PROFILE-NAME", action)]
         profile: Option<String>,
-        #[clap(long, value_name = "FEATURES")]
+        #[clap(long, value_name = "FEATURES", action)]
         features: Option<String>,
-        #[clap(long)]
+        #[clap(long, action)]
         all_features: bool,
-        #[clap(long)]
+        #[clap(long, action)]
         no_default_features: bool,
-        #[clap(long, value_name = "TRIPLE")]
+        #[clap(long, value_name = "TRIPLE", action)]
         target: Option<String>,
-        #[clap(long, value_name = "PATH")]
+        #[clap(long, value_name = "PATH", action)]
         manifest_path: Option<String>,
 
-        #[clap(short, long)]
+        #[clap(short, long, action)]
         help: bool,
-        #[clap(short = 'V', long)]
+        #[clap(short = 'V', long, action)]
         version: bool,
 
         // Any additional flags for rustc taken after `--`.
-        #[clap(last = true, parse(from_os_str))]
+        #[clap(last = true, action)]
         rest: Vec<OsString>,
     },
 }
@@ -274,7 +275,7 @@ impl Instantiations {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(ValueEnum, Copy, Clone, Debug)]
 enum SortOrder {
     Lines,
     Copies,
