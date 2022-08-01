@@ -2,13 +2,13 @@
 name = "cargo-llvm-lines"
 version = "0.4.16"
 authors = ["David Tolnay <dtolnay@gmail.com>", "Nicholas Nethercote <nnethercote@mozilla.com>"]
-license = "MIT OR Apache-2.0"
-description = "Count the number of lines of LLVM IR across all instantiations of a generic function."
-repository = "https://github.com/dtolnay/cargo-llvm-lines"
-documentation = "https://github.com/dtolnay/cargo-llvm-lines"
 categories = ["development-tools::cargo-plugins", "development-tools::debugging"]
+description = "Count the number of lines of LLVM IR across all instantiations of a generic function."
+documentation = "https://github.com/dtolnay/cargo-llvm-lines"
 edition = "2021"
+license = "MIT OR Apache-2.0"
 readme = "README.md"
+repository = "https://github.com/dtolnay/cargo-llvm-lines"
 
 [dependencies]
 atty = "0.2"
