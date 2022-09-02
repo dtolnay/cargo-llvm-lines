@@ -231,7 +231,7 @@ fn run_cargo_rustc(outfile: &Path) -> io::Result<i32> {
 }
 
 fn read_llvm_ir_from_dir(outdir: &TempDir) -> io::Result<Vec<u8>> {
-    for file in fs::read_dir(&outdir)? {
+    for file in fs::read_dir(outdir)? {
         let path = file?.path();
         if let Some(ext) = path.extension() {
             if ext == "ll" {
