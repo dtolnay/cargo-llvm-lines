@@ -8,7 +8,6 @@ documentation = "https://github.com/dtolnay/cargo-llvm-lines"
 edition = "2021"
 keywords = ["cargo", "subcommand"]
 license = "MIT OR Apache-2.0"
-readme = "README.md"
 repository = "https://github.com/dtolnay/cargo-llvm-lines"
 
 [dependencies]
