@@ -11,7 +11,7 @@
 )]
 
 use atty::Stream::Stderr;
-use clap::{AppSettings, CommandFactory, Parser, ValueEnum};
+use clap::{CommandFactory, Parser, ValueEnum};
 use rustc_demangle::demangle;
 use std::collections::HashMap as Map;
 use std::env;
@@ -37,14 +37,13 @@ const TEMPLATE: &str = "\
 {author}
 {about}
 
-USAGE:
+{usage-heading}
     {usage}
 
-OPTIONS:
-{options}";
+{all-args}";
 
 #[derive(Parser, Debug)]
-#[clap(
+#[command(
     name = "cargo-llvm-lines",
     bin_name = "cargo",
     author,
@@ -53,73 +52,71 @@ OPTIONS:
 )]
 #[allow(dead_code)]
 enum Opt {
-    #[clap(
+    #[command(
         name = "llvm-lines",
         author,
         version,
         about = ABOUT,
         help_template = TEMPLATE,
         override_usage = "cargo llvm-lines [OPTIONS] -- [RUSTC OPTIONS]",
-        setting = AppSettings::DeriveDisplayOrder,
         disable_help_flag = true,
         disable_version_flag = true,
     )]
     LlvmLines {
         /// Set column by which to sort output table.
-        #[clap(
+        #[arg(
             short,
             long,
             value_enum,
             value_name = "ORDER",
             ignore_case = true,
             default_value_t = SortOrder::Lines,
-            action,
         )]
         sort: SortOrder,
 
         /// Analyze existing .ll files that were produced by e.g.
         /// `RUSTFLAGS="--emit=llvm-ir" ./x.py build --stage 0 compiler/rustc`.
-        #[clap(short, long, value_name = "FILES", action)]
+        #[arg(short, long, value_name = "FILES")]
         files: Vec<PathBuf>,
 
         // Run in a different mode that just filters some Cargo output and does
         // nothing else.
-        #[clap(long, hide = true, action)]
+        #[arg(long, hide = true)]
         filter_cargo: bool,
 
         // All these options are passed through to the cargo rustc invocation.
-        #[clap(short, long, action)]
+        #[arg(short, long)]
         quiet: bool,
-        #[clap(short, long, value_name = "SPEC", action)]
+        #[arg(short, long, value_name = "SPEC")]
         package: Option<String>,
-        #[clap(long, action)]
+        #[arg(long)]
         lib: bool,
-        #[clap(long, value_name = "NAME", action)]
+        #[arg(long, value_name = "NAME")]
         bin: Option<String>,
-        #[clap(long, value_name = "NAME", action)]
+        #[arg(long, value_name = "NAME")]
         example: Option<String>,
-        #[clap(long, action)]
+        #[arg(long)]
         release: bool,
-        #[clap(long, value_name = "PROFILE-NAME", action)]
+        #[arg(long, value_name = "PROFILE-NAME")]
         profile: Option<String>,
-        #[clap(long, value_name = "FEATURES", action)]
+        #[arg(long, value_name = "FEATURES")]
         features: Option<String>,
-        #[clap(long, action)]
+        #[arg(long)]
         all_features: bool,
-        #[clap(long, action)]
+        #[arg(long)]
         no_default_features: bool,
-        #[clap(long, value_name = "TRIPLE", action)]
+        #[arg(long, value_name = "TRIPLE")]
         target: Option<String>,
-        #[clap(long, value_name = "PATH", action)]
+        #[arg(long, value_name = "PATH")]
         manifest_path: Option<String>,
 
-        #[clap(short, long, action)]
+        #[arg(short, long)]
         help: bool,
-        #[clap(short = 'V', long, action)]
+        #[arg(short = 'V', long)]
         version: bool,
 
         // Any additional flags for rustc taken after `--`.
-        #[clap(last = true, action)]
+        #[arg(last = true, hide = true)]
         rest: Vec<OsString>,
     },
 }
