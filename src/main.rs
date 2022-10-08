@@ -7,6 +7,7 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::let_underscore_drop,
+    clippy::uninlined_format_args,
     clippy::unseparated_literal_suffix
 )]
 
