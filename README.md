@@ -23,35 +23,38 @@ Install with `cargo install cargo-llvm-lines`.
 One line per function with three columns of output:
 
 1. Total number of lines of LLVM IR generated across all instantiations of the
-   function (and the percentage of the total).
-2. Number of instantiations of the function (and the percentage of the total).
-   For a generic function, roughly the number of distinct combinations of
-   generic type parameters it is called with.
+   function (plus the percentage of the total and the cumulative percentage
+   of all functions so far).
+2. Number of instantiations of the function (plus the percentage of the total
+   and the cumulative percentage of all functions so far). For a generic
+   function, the number of instantiations is roughly the number of distinct
+   combinations of generic type parameters it is called with.
 3. Name of the function.
 
 ```
 $ cargo llvm-lines | head -20
 
-  Lines         Copies       Function name
-  -----         ------       -------------
-  30737 (100%)  1107 (100%)  (TOTAL)
-   1395 (4.5%)    83 (7.5%)  core::ptr::drop_in_place
-    760 (2.5%)     2 (0.2%)  alloc::slice::merge_sort
-    734 (2.4%)     2 (0.2%)  alloc::raw_vec::RawVec<T,A>::reserve_internal
-    666 (2.2%)     1 (0.1%)  cargo_llvm_lines::count_lines
-    490 (1.6%)     1 (0.1%)  <std::process::Command as cargo_llvm_lines::PipeTo>::pipe_to
-    476 (1.5%)     6 (0.5%)  core::result::Result<T,E>::map
-    440 (1.4%)     1 (0.1%)  cargo_llvm_lines::read_llvm_ir
-    422 (1.4%)     2 (0.2%)  alloc::slice::merge
-    399 (1.3%)     4 (0.4%)  alloc::vec::Vec<T>::extend_desugared
-    388 (1.3%)     2 (0.2%)  alloc::slice::insert_head
-    366 (1.2%)     5 (0.5%)  core::option::Option<T>::map
-    304 (1.0%)     6 (0.5%)  alloc::alloc::box_free
-    296 (1.0%)     4 (0.4%)  core::result::Result<T,E>::map_err
-    295 (1.0%)     1 (0.1%)  cargo_llvm_lines::wrap_args
-    291 (0.9%)     1 (0.1%)  core::char::methods::<impl char>::encode_utf8
-    286 (0.9%)     1 (0.1%)  cargo_llvm_lines::run_cargo_rustc
-    284 (0.9%)     4 (0.4%)  core::option::Option<T>::ok_or_else
+  Lines                Copies              Function name
+  -----                ------              -------------
+  52262                1872                (TOTAL)
+   1815 (3.5%,  3.5%)     1 (0.1%,  0.1%)  <cargo_llvm_lines::Opt as clap::derive::Subcommand>::augment_subcommands
+   1806 (3.5%,  6.9%)     1 (0.1%,  0.1%)  <cargo_llvm_lines::Opt as clap::derive::FromArgMatches>::from_arg_matches_mut
+   1546 (3.0%,  9.9%)    34 (1.8%,  1.9%)  core::option::Option<T>::map
+   1045 (2.0%, 11.9%)     5 (0.3%,  2.2%)  clap::parser::matches::arg_matches::ArgMatches::try_remove_arg_t
+    738 (1.4%, 13.3%)     2 (0.1%,  2.3%)  alloc::slice::merge_sort
+    648 (1.2%, 14.5%)     4 (0.2%,  2.5%)  alloc::raw_vec::RawVec<T,A>::grow_amortized
+    645 (1.2%, 15.8%)     6 (0.3%,  2.8%)  <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+    636 (1.2%, 17.0%)    43 (2.3%,  5.1%)  <cargo_llvm_lines::Opt as clap::derive::FromArgMatches>::from_arg_matches_mut::{{closure}}
+    587 (1.1%, 18.1%)    15 (0.8%,  5.9%)  <core::result::Result<T,E> as core::ops::try_trait::Try>::branch
+    565 (1.1%, 19.2%)     6 (0.3%,  6.2%)  core::iter::traits::iterator::Iterator::try_fold
+    533 (1.0%, 20.2%)     1 (0.1%,  6.3%)  cargo_llvm_lines::print_table
+    520 (1.0%, 21.2%)     6 (0.3%,  6.6%)  alloc::vec::Vec<T,A>::extend_desugared
+    509 (1.0%, 22.2%)     5 (0.3%,  6.9%)  clap::parser::matches::any_value::AnyValue::downcast_into
+    504 (1.0%, 23.1%)     5 (0.3%,  7.2%)  alloc::sync::Arc<T>::try_unwrap
+    470 (0.9%, 24.0%)    11 (0.6%,  7.7%)  core::option::Option<T>::ok_or_else
+    438 (0.8%, 24.9%)     2 (0.1%,  7.9%)  alloc::slice::merge
+    414 (0.8%, 25.7%)     9 (0.5%,  8.3%)  core::result::Result<T,E>::and_then
+
 ```
 
 ## Multicrate Projects
