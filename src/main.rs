@@ -28,7 +28,7 @@ cargo_subcommand_metadata::description!(
 );
 
 const ABOUT: &str = "
-Print amount of lines of LLVM IR that is generated for the current project.
+Print the number of lines of LLVM IR that is generated for the current project.
 
 Options shown below without an explanation mean the same thing as the
 corresponding option of `cargo build`.";
@@ -335,30 +335,39 @@ fn print_table(instantiations: Map<String, Instantiations>, sort_order: SortOrde
     let mut handle = stdout.lock();
     let _ = writeln!(
         handle,
-        "  Lines{0:1$}    Copies{0:2$}   Function name",
+        "  Lines{0:1$}           Copies{0:2$}          Function name",
         "", lines_width, copies_width,
     );
     let _ = writeln!(
         handle,
-        "  -----{0:1$}    ------{0:2$}   -------------",
+        "  -----{0:1$}           ------{0:2$}          -------------",
         "", lines_width, copies_width,
     );
     let _ = writeln!(
         handle,
-        "  {0:1$} (100%)  {2:3$} (100%)  (TOTAL)",
+        "  {0:1$}                {2:3$}                (TOTAL)",
         total.total_lines, lines_width, total.copies, copies_width,
     );
-    let perc = |m, n| format!("({:3.1}%)", m as f64 / n as f64 * 100f64);
+    let mut cumul_lines = 0;
+    let mut cumul_copies = 0;
+    let perc = |m, cumul_m: &mut _, n| {
+        *cumul_m += m;
+        format!(
+            "({:3.1}%,{:5.1}%)",
+            m as f64 / n as f64 * 100f64,
+            *cumul_m as f64 / n as f64 * 100f64,
+        )
+    };
     for row in data {
         let _ = writeln!(
             handle,
-            "  {0:1$} {2:<7} {3:4$} {5:<7} {6}",
+            "  {0:1$} {2:<14} {3:4$} {5:<14} {6}",
             row.1.total_lines,
             lines_width,
-            perc(row.1.total_lines, total.total_lines),
+            perc(row.1.total_lines, &mut cumul_lines, total.total_lines),
             row.1.copies,
             copies_width,
-            perc(row.1.copies, total.copies),
+            perc(row.1.copies, &mut cumul_copies, total.copies),
             row.0,
         );
     }
