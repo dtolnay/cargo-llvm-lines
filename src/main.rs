@@ -13,6 +13,7 @@
 
 use atty::Stream::Stderr;
 use clap::{CommandFactory, Parser, ValueEnum};
+use regex::Regex;
 use rustc_demangle::demangle;
 use std::collections::HashMap as Map;
 use std::env;
@@ -75,6 +76,10 @@ enum Opt {
         )]
         sort: SortOrder,
 
+        /// Filter functions in output.
+        #[arg(long, value_name = "REGEX")]
+        filter: Option<String>,
+
         /// Analyze existing .ll files that were produced by e.g.
         /// `RUSTFLAGS="--emit=llvm-ir" ./x.py build --stage 0 compiler/rustc`.
         #[arg(short, long, value_name = "FILES")]
@@ -126,6 +131,7 @@ fn main() {
     let Opt::LlvmLines {
         filter_cargo,
         sort,
+        filter,
         files,
         help,
         version,
@@ -147,10 +153,19 @@ fn main() {
         return;
     }
 
+    let function_filter = match filter.map(|filter| Regex::new(&filter)) {
+        None => None,
+        Some(Ok(filter)) => Some(filter),
+        Some(Err(err)) => {
+            let _ = writeln!(io::stderr(), "{}", err);
+            process::exit(1);
+        }
+    };
+
     let result = if files.is_empty() {
-        cargo_llvm_lines(filter_cargo, sort)
+        cargo_llvm_lines(filter_cargo, sort, function_filter)
     } else {
-        read_llvm_ir_from_paths(&files, sort)
+        read_llvm_ir_from_paths(&files, sort, function_filter)
     };
 
     process::exit(match result {
@@ -162,7 +177,11 @@ fn main() {
     });
 }
 
-fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32> {
+fn cargo_llvm_lines(
+    filter_cargo: bool,
+    sort_order: SortOrder,
+    function_filter: Option<Regex>,
+) -> io::Result<i32> {
     // If `--filter-cargo` was specified, just filter the output and exit
     // early.
     if filter_cargo {
@@ -180,7 +199,7 @@ fn cargo_llvm_lines(filter_cargo: bool, sort_order: SortOrder) -> io::Result<i32
     let ir = read_llvm_ir_from_dir(&outdir)?;
     let mut instantiations = Map::<String, Instantiations>::new();
     count_lines(&mut instantiations, &ir);
-    print_table(instantiations, sort_order);
+    print_table(instantiations, sort_order, function_filter);
 
     Ok(0)
 }
@@ -191,10 +210,18 @@ fn run_cargo_rustc(outfile: &Path) -> io::Result<i32> {
     let mut cmd = Command::new(cargo);
 
     // Strip out options that are for cargo-llvm-lines itself.
+    let mut prev_was_filter = false;
     let args: Vec<_> = env::args_os()
         .filter(|s| {
-            !["--sort", "-s", "lines", "Lines", "copies", "Copies"]
-                .contains(&s.to_string_lossy().as_ref())
+            let x = s.to_string_lossy();
+            if x == "--filter" {
+                prev_was_filter = true;
+                return false;
+            } else if prev_was_filter {
+                prev_was_filter = false;
+                return false;
+            }
+            !["--sort", "-s", "lines", "Lines", "copies", "Copies"].contains(&x.as_ref())
         })
         .collect();
     cmd.args(&wrap_args(args.clone(), outfile));
@@ -242,7 +269,11 @@ fn read_llvm_ir_from_dir(outdir: &TempDir) -> io::Result<Vec<u8>> {
     Err(io::Error::new(ErrorKind::Other, msg))
 }
 
-fn read_llvm_ir_from_paths(paths: &[PathBuf], sort_order: SortOrder) -> io::Result<i32> {
+fn read_llvm_ir_from_paths(
+    paths: &[PathBuf],
+    sort_order: SortOrder,
+    function_filter: Option<Regex>,
+) -> io::Result<i32> {
     let mut instantiations = Map::<String, Instantiations>::new();
 
     for path in paths {
@@ -255,7 +286,7 @@ fn read_llvm_ir_from_paths(paths: &[PathBuf], sort_order: SortOrder) -> io::Resu
         }
     }
 
-    print_table(instantiations, sort_order);
+    print_table(instantiations, sort_order, function_filter);
     Ok(0)
 }
 
@@ -299,7 +330,11 @@ fn count_lines(instantiations: &mut Map<String, Instantiations>, ir: &[u8]) {
     }
 }
 
-fn print_table(instantiations: Map<String, Instantiations>, sort_order: SortOrder) {
+fn print_table(
+    instantiations: Map<String, Instantiations>,
+    sort_order: SortOrder,
+    function_filter: Option<Regex>,
+) {
     let mut data = instantiations.into_iter().collect::<Vec<_>>();
 
     let mut total = Instantiations {
@@ -358,18 +393,21 @@ fn print_table(instantiations: Map<String, Instantiations>, sort_order: SortOrde
             *cumul_m as f64 / n as f64 * 100f64,
         )
     };
+    let ff = function_filter.as_ref();
     for row in data {
-        let _ = writeln!(
-            handle,
-            "  {0:1$} {2:<14} {3:4$} {5:<14} {6}",
-            row.1.total_lines,
-            lines_width,
-            perc(row.1.total_lines, &mut cumul_lines, total.total_lines),
-            row.1.copies,
-            copies_width,
-            perc(row.1.copies, &mut cumul_copies, total.copies),
-            row.0,
-        );
+        if ff.map_or(true, |ff| ff.is_match(&row.0)) {
+            let _ = writeln!(
+                handle,
+                "  {0:1$} {2:<14} {3:4$} {5:<14} {6}",
+                row.1.total_lines,
+                lines_width,
+                perc(row.1.total_lines, &mut cumul_lines, total.total_lines),
+                row.1.copies,
+                copies_width,
+                perc(row.1.copies, &mut cumul_copies, total.copies),
+                row.0,
+            );
+        }
     }
 }
 
