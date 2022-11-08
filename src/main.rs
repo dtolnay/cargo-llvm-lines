@@ -163,9 +163,9 @@ fn main() {
     };
 
     let result = if files.is_empty() {
-        cargo_llvm_lines(filter_cargo, sort, function_filter)
+        cargo_llvm_lines(filter_cargo, sort, function_filter.as_ref())
     } else {
-        read_llvm_ir_from_paths(&files, sort, function_filter)
+        read_llvm_ir_from_paths(&files, sort, function_filter.as_ref())
     };
 
     process::exit(match result {
@@ -180,7 +180,7 @@ fn main() {
 fn cargo_llvm_lines(
     filter_cargo: bool,
     sort_order: SortOrder,
-    function_filter: Option<Regex>,
+    function_filter: Option<&Regex>,
 ) -> io::Result<i32> {
     // If `--filter-cargo` was specified, just filter the output and exit
     // early.
@@ -272,7 +272,7 @@ fn read_llvm_ir_from_dir(outdir: &TempDir) -> io::Result<Vec<u8>> {
 fn read_llvm_ir_from_paths(
     paths: &[PathBuf],
     sort_order: SortOrder,
-    function_filter: Option<Regex>,
+    function_filter: Option<&Regex>,
 ) -> io::Result<i32> {
     let mut instantiations = Map::<String, Instantiations>::new();
 
@@ -333,7 +333,7 @@ fn count_lines(instantiations: &mut Map<String, Instantiations>, ir: &[u8]) {
 fn print_table(
     instantiations: Map<String, Instantiations>,
     sort_order: SortOrder,
-    function_filter: Option<Regex>,
+    function_filter: Option<&Regex>,
 ) {
     let mut data = instantiations.into_iter().collect::<Vec<_>>();
 
@@ -393,9 +393,8 @@ fn print_table(
             *cumul_m as f64 / n as f64 * 100f64,
         )
     };
-    let ff = function_filter.as_ref();
     for row in data {
-        if ff.map_or(true, |ff| ff.is_match(&row.0)) {
+        if function_filter.map_or(true, |ff| ff.is_match(&row.0)) {
             let _ = writeln!(
                 handle,
                 "  {0:1$} {2:<14} {3:4$} {5:<14} {6}",
