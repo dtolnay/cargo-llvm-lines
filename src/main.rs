@@ -76,7 +76,7 @@ enum Opt {
         )]
         sort: SortOrder,
 
-        /// Filter functions in output.
+        /// Display only functions matching the given regex.
         #[arg(long, value_name = "REGEX")]
         filter: Option<String>,
 
