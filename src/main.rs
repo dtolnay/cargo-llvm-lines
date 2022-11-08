@@ -78,7 +78,7 @@ enum Opt {
 
         /// Display only functions matching the given regex.
         #[arg(long, value_name = "REGEX")]
-        filter: Option<String>,
+        filter: Option<Regex>,
 
         /// Analyze existing .ll files that were produced by e.g.
         /// `RUSTFLAGS="--emit=llvm-ir" ./x.py build --stage 0 compiler/rustc`.
@@ -131,7 +131,7 @@ fn main() {
     let Opt::LlvmLines {
         filter_cargo,
         sort,
-        filter,
+        filter: function_filter,
         files,
         help,
         version,
@@ -152,15 +152,6 @@ fn main() {
         let _ = stdout.write_all(Opt::command().render_version().as_bytes());
         return;
     }
-
-    let function_filter = match filter.map(|filter| Regex::new(&filter)) {
-        None => None,
-        Some(Ok(filter)) => Some(filter),
-        Some(Err(err)) => {
-            let _ = writeln!(io::stderr(), "{}", err);
-            process::exit(1);
-        }
-    };
 
     let result = if files.is_empty() {
         cargo_llvm_lines(filter_cargo, sort, function_filter.as_ref())
