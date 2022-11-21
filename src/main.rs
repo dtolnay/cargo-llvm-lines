@@ -101,6 +101,8 @@ enum Opt {
         bin: Option<String>,
         #[arg(long, value_name = "NAME")]
         example: Option<String>,
+        #[arg(long, value_name = "NAME")]
+        test: Option<String>,
         #[arg(long)]
         release: bool,
         #[arg(long, value_name = "PROFILE-NAME")]
