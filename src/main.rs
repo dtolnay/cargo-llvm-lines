@@ -71,7 +71,6 @@ enum Opt {
             long,
             value_enum,
             value_name = "ORDER",
-            ignore_case = true,
             default_value_t = SortOrder::Lines,
         )]
         sort: SortOrder,
@@ -214,7 +213,7 @@ fn run_cargo_rustc(outfile: &Path) -> io::Result<i32> {
                 prev_was_filter = false;
                 return false;
             }
-            !["--sort", "-s", "lines", "Lines", "copies", "Copies"].contains(&x.as_ref())
+            !["--sort", "-s", "lines", "copies"].contains(&x.as_ref())
         })
         .collect();
     cmd.args(&wrap_args(args.clone(), outfile));
