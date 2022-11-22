@@ -39,68 +39,71 @@ pub enum Subcommand {
         disable_help_flag = true,
         disable_version_flag = true,
     )]
-    LlvmLines {
-        /// Set column by which to sort output table.
-        #[arg(
-            short,
-            long,
-            value_enum,
-            value_name = "ORDER",
-            default_value_t = SortOrder::Lines,
-        )]
-        sort: SortOrder,
+    LlvmLines(LlvmLines),
+}
 
-        /// Display only functions matching the given regex.
-        #[arg(long, value_name = "REGEX")]
-        filter: Option<Regex>,
+#[derive(Parser, Debug)]
+pub struct LlvmLines {
+    /// Set column by which to sort output table.
+    #[arg(
+        short,
+        long,
+        value_enum,
+        value_name = "ORDER",
+        default_value_t = SortOrder::Lines,
+    )]
+    pub sort: SortOrder,
 
-        /// Analyze existing .ll files that were produced by e.g.
-        /// `RUSTFLAGS="--emit=llvm-ir" ./x.py build --stage 0 compiler/rustc`.
-        #[arg(short, long, value_name = "FILES")]
-        files: Vec<PathBuf>,
+    /// Display only functions matching the given regex.
+    #[arg(long, value_name = "REGEX")]
+    pub filter: Option<Regex>,
 
-        // Run in a different mode that just filters some Cargo output and does
-        // nothing else.
-        #[arg(long, hide = true)]
-        filter_cargo: bool,
+    /// Analyze existing .ll files that were produced by e.g.
+    /// `RUSTFLAGS="--emit=llvm-ir" ./x.py build --stage 0 compiler/rustc`.
+    #[arg(short, long, value_name = "FILES")]
+    pub files: Vec<PathBuf>,
 
-        // All these options are passed through to the cargo rustc invocation.
-        #[arg(short, long)]
-        quiet: bool,
-        #[arg(short, long, value_name = "SPEC")]
-        package: Option<String>,
-        #[arg(long)]
-        lib: bool,
-        #[arg(long, value_name = "NAME")]
-        bin: Option<String>,
-        #[arg(long, value_name = "NAME")]
-        example: Option<String>,
-        #[arg(long, value_name = "NAME")]
-        test: Option<String>,
-        #[arg(long)]
-        release: bool,
-        #[arg(long, value_name = "PROFILE-NAME")]
-        profile: Option<String>,
-        #[arg(long, value_name = "FEATURES")]
-        features: Option<String>,
-        #[arg(long)]
-        all_features: bool,
-        #[arg(long)]
-        no_default_features: bool,
-        #[arg(long, value_name = "TRIPLE")]
-        target: Option<String>,
-        #[arg(long, value_name = "PATH")]
-        manifest_path: Option<String>,
+    // Run in a different mode that just filters some Cargo output and does
+    // nothing else.
+    #[arg(long, hide = true)]
+    pub filter_cargo: bool,
 
-        #[arg(short, long)]
-        help: bool,
-        #[arg(short = 'V', long)]
-        version: bool,
+    // All these options are passed through to the cargo rustc invocation.
+    #[arg(short, long)]
+    pub quiet: bool,
+    #[arg(short, long, value_name = "SPEC")]
+    pub package: Option<String>,
+    #[arg(long)]
+    pub lib: bool,
+    #[arg(long, value_name = "NAME")]
+    pub bin: Option<String>,
+    #[arg(long, value_name = "NAME")]
+    pub example: Option<String>,
+    #[arg(long, value_name = "NAME")]
+    pub test: Option<String>,
+    #[arg(long)]
+    pub release: bool,
+    #[arg(long, value_name = "PROFILE-NAME")]
+    pub profile: Option<String>,
+    #[arg(long, value_name = "FEATURES")]
+    pub features: Option<String>,
+    #[arg(long)]
+    pub all_features: bool,
+    #[arg(long)]
+    pub no_default_features: bool,
+    #[arg(long, value_name = "TRIPLE")]
+    pub target: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    pub manifest_path: Option<String>,
 
-        // Any additional flags for rustc taken after `--`.
-        #[arg(last = true, hide = true)]
-        rest: Vec<OsString>,
-    },
+    #[arg(short, long)]
+    pub help: bool,
+    #[arg(short = 'V', long)]
+    pub version: bool,
+
+    // Any additional flags for rustc taken after `--`.
+    #[arg(last = true, hide = true)]
+    pub rest: Vec<OsString>,
 }
 
 #[derive(ValueEnum, Copy, Clone, Debug)]

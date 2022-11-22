@@ -17,7 +17,7 @@ mod opts;
 mod table;
 
 use crate::count::{count_lines, Instantiations};
-use crate::opts::{SortOrder, Subcommand};
+use crate::opts::{LlvmLines, SortOrder, Subcommand};
 use atty::Stream::Stderr;
 use clap::{CommandFactory, Parser};
 use regex::Regex;
@@ -35,7 +35,7 @@ cargo_subcommand_metadata::description!(
 );
 
 fn main() {
-    let Subcommand::LlvmLines {
+    let Subcommand::LlvmLines(LlvmLines {
         filter_cargo,
         sort,
         filter: function_filter,
@@ -43,7 +43,7 @@ fn main() {
         help,
         version,
         ..
-    } = Subcommand::parse();
+    }) = Subcommand::parse();
 
     if help {
         let _ = Subcommand::command()
