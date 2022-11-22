@@ -13,7 +13,7 @@
 
 mod opts;
 
-use crate::opts::{Opt, SortOrder};
+use crate::opts::{SortOrder, Subcommand};
 use atty::Stream::Stderr;
 use clap::{CommandFactory, Parser};
 use regex::Regex;
@@ -32,7 +32,7 @@ cargo_subcommand_metadata::description!(
 );
 
 fn main() {
-    let Opt::LlvmLines {
+    let Subcommand::LlvmLines {
         filter_cargo,
         sort,
         filter: function_filter,
@@ -40,10 +40,10 @@ fn main() {
         help,
         version,
         ..
-    } = Opt::parse();
+    } = Subcommand::parse();
 
     if help {
-        let _ = Opt::command()
+        let _ = Subcommand::command()
             .get_subcommands_mut()
             .next()
             .unwrap()
@@ -53,7 +53,7 @@ fn main() {
 
     if version {
         let mut stdout = io::stdout();
-        let _ = stdout.write_all(Opt::command().render_version().as_bytes());
+        let _ = stdout.write_all(Subcommand::command().render_version().as_bytes());
         return;
     }
 
@@ -420,5 +420,5 @@ fn ignore_cargo_err(line: &str) -> bool {
 
 #[test]
 fn test_cli() {
-    Opt::command().debug_assert();
+    Subcommand::command().debug_assert();
 }

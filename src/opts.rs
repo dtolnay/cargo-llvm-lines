@@ -28,7 +28,7 @@ const TEMPLATE: &str = "\
     disable_help_subcommand = true
 )]
 #[allow(dead_code)]
-pub enum Opt {
+pub enum Subcommand {
     #[command(
         name = "llvm-lines",
         author,
