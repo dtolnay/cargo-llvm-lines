@@ -36,15 +36,17 @@ cargo_subcommand_metadata::description!(
 );
 
 fn main() {
-    let Subcommand::LlvmLines(LlvmLines {
-        filter_cargo,
-        sort,
-        filter: function_filter,
-        files,
-        help,
-        version,
-        ..
-    }) = Subcommand::parse();
+    let Subcommand::LlvmLines(
+        ref opts @ LlvmLines {
+            filter_cargo,
+            sort,
+            filter: ref function_filter,
+            ref files,
+            help,
+            version,
+            ..
+        },
+    ) = Subcommand::parse();
 
     if help {
         let _ = Subcommand::command()
@@ -66,9 +68,9 @@ fn main() {
         filter_err();
         Ok(0)
     } else if files.is_empty() {
-        cargo_llvm_lines(sort, function_filter.as_ref())
+        cargo_llvm_lines(opts)
     } else {
-        read_llvm_ir_from_paths(&files, sort, function_filter.as_ref())
+        read_llvm_ir_from_paths(files, sort, function_filter.as_ref())
     };
 
     process::exit(match result {
@@ -80,7 +82,7 @@ fn main() {
     });
 }
 
-fn cargo_llvm_lines(sort_order: SortOrder, function_filter: Option<&Regex>) -> io::Result<i32> {
+fn cargo_llvm_lines(opts: &LlvmLines) -> io::Result<i32> {
     let outdir = TempDir::new("cargo-llvm-lines").expect("failed to create tmp file");
     let outfile = outdir.path().join("crate");
 
@@ -92,7 +94,7 @@ fn cargo_llvm_lines(sort_order: SortOrder, function_filter: Option<&Regex>) -> i
     let ir = read_llvm_ir_from_dir(&outdir)?;
     let mut instantiations = Map::<String, Instantiations>::new();
     count_lines(&mut instantiations, &ir);
-    table::print(instantiations, sort_order, function_filter);
+    table::print(instantiations, opts.sort, opts.filter.as_ref());
 
     Ok(0)
 }
