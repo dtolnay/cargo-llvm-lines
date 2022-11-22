@@ -63,11 +63,6 @@ pub struct LlvmLines {
     #[arg(short, long, value_name = "FILES")]
     pub files: Vec<PathBuf>,
 
-    // Run in a different mode that just filters some Cargo output and does
-    // nothing else.
-    #[arg(long, hide = true)]
-    pub filter_cargo: bool,
-
     // All these options are passed through to the cargo rustc invocation.
     #[arg(short, long)]
     pub quiet: bool,

@@ -27,7 +27,7 @@ use std::collections::HashMap as Map;
 use std::env;
 use std::ffi::OsString;
 use std::fs;
-use std::io::{self, ErrorKind, Write};
+use std::io::{self, BufRead, ErrorKind, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, Stdio};
 use tempdir::TempDir;
@@ -54,11 +54,7 @@ fn main() {
         return;
     }
 
-    // If `--filter-cargo` was specified, just filter the output and exit early.
-    let result = if opts.filter_cargo {
-        filter_err();
-        Ok(0)
-    } else if opts.files.is_empty() {
+    let result = if opts.files.is_empty() {
         cargo_llvm_lines(&opts)
     } else {
         read_llvm_ir_from_paths(&opts.files, opts.sort, opts.filter.as_ref())
@@ -97,23 +93,7 @@ fn run_cargo_rustc(opts: &LlvmLines, outfile: &Path) -> io::Result<i32> {
     propagate_opts(&mut cmd, opts, outfile);
     cmd.env("CARGO_INCREMENTAL", "");
     cmd.stdout(Stdio::inherit());
-    cmd.stderr(Stdio::piped());
-    let mut child = cmd.spawn()?;
-
-    // Filter stderr through a second invocation of `cargo-llvm-lines` that has
-    // `--filter-cargo` specified so that it just does the filtering in
-    // `filter_err()` above.
-    let current_exe = env::current_exe()?;
-    let mut errcmd = Command::new(current_exe);
-    errcmd.arg("llvm-lines");
-    errcmd.arg("--filter-cargo");
-    errcmd.stdin(child.stderr.take().ok_or(io::ErrorKind::BrokenPipe)?);
-    errcmd.stdout(Stdio::null());
-    errcmd.stderr(Stdio::inherit());
-    let mut errchild = errcmd.spawn()?;
-
-    errchild.wait()?;
-    child.wait().map(|status| status.code().unwrap_or(1))
+    filter_err(&mut cmd)
 }
 
 fn read_llvm_ir_from_dir(outdir: &TempDir) -> io::Result<Vec<u8>> {
@@ -157,7 +137,6 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         sort: _,
         filter: _,
         files: _,
-        filter_cargo: _,
         help: _,
         version: _,
 
@@ -287,10 +266,11 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
     cmd.args(rest);
 }
 
-/// Print lines from stdin to stderr, skipping lines that `ignore` succeeds on.
-fn filter_err() {
+fn filter_err(cmd: &mut Command) -> io::Result<i32> {
+    let mut child = cmd.stderr(Stdio::piped()).spawn()?;
+    let mut stderr = io::BufReader::new(child.stderr.take().unwrap());
     let mut line = String::new();
-    while let Ok(n) = io::stdin().read_line(&mut line) {
+    while let Ok(n) = stderr.read_line(&mut line) {
         if n == 0 {
             break;
         }
@@ -299,9 +279,10 @@ fn filter_err() {
         }
         line.clear();
     }
+    let code = child.wait()?.code().unwrap_or(1);
+    Ok(code)
 }
 
-/// Match Cargo output lines that we don't want to be printed.
 fn ignore_cargo_err(line: &str) -> bool {
     if line.trim().is_empty() {
         return true;
