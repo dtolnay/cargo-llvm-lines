@@ -238,7 +238,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         Some(Coloring::Always) => "always",
         Some(Coloring::Never) => "never",
         None | Some(Coloring::Auto) => {
-            if atty::is(Stderr) {
+            if env::var_os("NO_COLOR").is_none() && atty::is(Stderr) {
                 "always"
             } else {
                 "never"
