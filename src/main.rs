@@ -36,19 +36,9 @@ cargo_subcommand_metadata::description!(
 );
 
 fn main() {
-    let Subcommand::LlvmLines(
-        ref opts @ LlvmLines {
-            filter_cargo,
-            sort,
-            filter: ref function_filter,
-            ref files,
-            help,
-            version,
-            ..
-        },
-    ) = Subcommand::parse();
+    let Subcommand::LlvmLines(opts) = Subcommand::parse();
 
-    if help {
+    if opts.help {
         let _ = Subcommand::command()
             .get_subcommands_mut()
             .next()
@@ -57,20 +47,20 @@ fn main() {
         return;
     }
 
-    if version {
+    if opts.version {
         let mut stdout = io::stdout();
         let _ = stdout.write_all(Subcommand::command().render_version().as_bytes());
         return;
     }
 
     // If `--filter-cargo` was specified, just filter the output and exit early.
-    let result = if filter_cargo {
+    let result = if opts.filter_cargo {
         filter_err();
         Ok(0)
-    } else if files.is_empty() {
-        cargo_llvm_lines(opts)
+    } else if opts.files.is_empty() {
+        cargo_llvm_lines(&opts)
     } else {
-        read_llvm_ir_from_paths(files, sort, function_filter.as_ref())
+        read_llvm_ir_from_paths(&opts.files, opts.sort, opts.filter.as_ref())
     };
 
     process::exit(match result {
