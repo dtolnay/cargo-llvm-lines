@@ -193,7 +193,8 @@ fn propagate_args<I>(cmd: &mut Command, it: I, outfile: &Path)
 where
     I: IntoIterator<Item = OsString>,
 {
-    let mut args = vec!["rustc".into()];
+    cmd.arg("rustc");
+
     let mut has_color = false;
 
     // Skip the `cargo-llvm-lines` and `llvm-lines` arguments.
@@ -203,13 +204,13 @@ where
             break;
         }
         has_color |= arg.to_str().unwrap_or("").starts_with("--color");
-        args.push(arg);
+        cmd.arg(arg);
     }
 
     if !has_color {
         let color = atty::is(Stderr);
         let setting = if color { "always" } else { "never" };
-        args.push(format!("--color={}", setting).into());
+        cmd.arg(format!("--color={}", setting));
     }
 
     // The `-Cno-prepopulate-passes` means we skip LLVM optimizations, which is
@@ -221,14 +222,13 @@ where
     // use thin LTO buffers without running LLVM's NameAnonGlobals pass. This
     // will likely cause errors in LLVM. Consider adding -C
     // passes=name-anon-globals to the compiler command line."
-    args.push("--".into());
-    args.push("--emit=llvm-ir".into());
-    args.push("-Cno-prepopulate-passes".into());
-    args.push("-Cpasses=name-anon-globals".into());
-    args.push("-o".into());
-    args.push(outfile.into());
-    args.extend(it);
-    cmd.args(args);
+    cmd.arg("--");
+    cmd.arg("--emit=llvm-ir");
+    cmd.arg("-Cno-prepopulate-passes");
+    cmd.arg("-Cpasses=name-anon-globals");
+    cmd.arg("-o");
+    cmd.arg(outfile);
+    cmd.args(it);
 }
 
 /// Print lines from stdin to stderr, skipping lines that `ignore` succeeds on.
