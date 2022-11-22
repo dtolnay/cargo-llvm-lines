@@ -240,8 +240,8 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
     }
 
     let color = atty::is(Stderr);
-    let setting = if color { "always" } else { "never" };
-    cmd.arg(format!("--color={}", setting));
+    cmd.arg("--color");
+    cmd.arg(if color { "always" } else { "never" });
 
     // The `-Cno-prepopulate-passes` means we skip LLVM optimizations, which is
     // good because (a) we count the LLVM IR lines are sent to LLVM, not how
