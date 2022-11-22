@@ -172,6 +172,9 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         ref features,
         all_features,
         no_default_features,
+        frozen,
+        locked,
+        offline,
         ref target,
         ref manifest_path,
         ref rest,
@@ -227,6 +230,18 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
 
     if no_default_features {
         cmd.arg("--no-default-features");
+    }
+
+    if frozen {
+        cmd.arg("--frozen");
+    }
+
+    if locked {
+        cmd.arg("--locked");
+    }
+
+    if offline {
+        cmd.arg("--offline");
     }
 
     if let Some(target) = target {

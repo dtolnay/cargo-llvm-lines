@@ -91,6 +91,12 @@ pub struct LlvmLines {
     pub all_features: bool,
     #[arg(long)]
     pub no_default_features: bool,
+    #[arg(long)]
+    pub frozen: bool,
+    #[arg(long)]
+    pub locked: bool,
+    #[arg(long)]
+    pub offline: bool,
     #[arg(long, value_name = "TRIPLE")]
     pub target: Option<String>,
     #[arg(long, value_name = "PATH")]
