@@ -80,8 +80,7 @@ fn cargo_llvm_lines(
     sort_order: SortOrder,
     function_filter: Option<&Regex>,
 ) -> io::Result<i32> {
-    // If `--filter-cargo` was specified, just filter the output and exit
-    // early.
+    // If `--filter-cargo` was specified, just filter the output and exit early.
     if filter_cargo {
         filter_err(ignore_cargo_err);
     }
