@@ -73,7 +73,14 @@ fn cargo_llvm_lines(opts: &LlvmLines) -> io::Result<i32> {
     let outdir = TempDir::new("cargo-llvm-lines").expect("failed to create tmp file");
     let outfile = outdir.path().join("crate");
 
-    let exit = run_cargo_rustc(opts, &outfile)?;
+    // If cargo-llvm-lines was invoked from cargo, use the cargo that invoked it.
+    let cargo = env::var_os("CARGO").unwrap_or_else(|| OsString::from("cargo"));
+    let mut cmd = Command::new(cargo);
+    propagate_opts(&mut cmd, opts, &outfile);
+    cmd.env("CARGO_INCREMENTAL", "");
+    cmd.stdout(Stdio::inherit());
+
+    let exit = filter_err(&mut cmd)?;
     if exit != 0 {
         return Ok(exit);
     }
@@ -84,16 +91,6 @@ fn cargo_llvm_lines(opts: &LlvmLines) -> io::Result<i32> {
     table::print(instantiations, opts.sort, opts.filter.as_ref());
 
     Ok(0)
-}
-
-fn run_cargo_rustc(opts: &LlvmLines, outfile: &Path) -> io::Result<i32> {
-    // If cargo-llvm-lines was invoked from cargo, use the cargo that invoked it.
-    let cargo = env::var_os("CARGO").unwrap_or_else(|| OsString::from("cargo"));
-    let mut cmd = Command::new(cargo);
-    propagate_opts(&mut cmd, opts, outfile);
-    cmd.env("CARGO_INCREMENTAL", "");
-    cmd.stdout(Stdio::inherit());
-    filter_err(&mut cmd)
 }
 
 fn read_llvm_ir_from_dir(outdir: &TempDir) -> io::Result<Vec<u8>> {
