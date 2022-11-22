@@ -172,23 +172,18 @@ where
 {
     cmd.arg("rustc");
 
-    let mut has_color = false;
-
     // Skip the `cargo-llvm-lines` and `llvm-lines` arguments.
     let mut it = it.into_iter().skip(2);
     for arg in &mut it {
         if arg == *"--" {
             break;
         }
-        has_color |= arg.to_str().unwrap_or("").starts_with("--color");
         cmd.arg(arg);
     }
 
-    if !has_color {
-        let color = atty::is(Stderr);
-        let setting = if color { "always" } else { "never" };
-        cmd.arg(format!("--color={}", setting));
-    }
+    let color = atty::is(Stderr);
+    let setting = if color { "always" } else { "never" };
+    cmd.arg(format!("--color={}", setting));
 
     // The `-Cno-prepopulate-passes` means we skip LLVM optimizations, which is
     // good because (a) we count the LLVM IR lines are sent to LLVM, not how
