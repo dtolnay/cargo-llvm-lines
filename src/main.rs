@@ -150,7 +150,6 @@ fn read_llvm_ir_from_paths(
     Ok(0)
 }
 
-// Based on https://github.com/rsolomo/cargo-check
 fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
     let LlvmLines {
         // Strip out options that are for cargo-llvm-lines itself.
