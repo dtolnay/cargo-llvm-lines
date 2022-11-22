@@ -76,7 +76,7 @@ fn cargo_llvm_lines(opts: &LlvmLines) -> io::Result<i32> {
     let outdir = TempDir::new("cargo-llvm-lines").expect("failed to create tmp file");
     let outfile = outdir.path().join("crate");
 
-    let exit = run_cargo_rustc(&outfile)?;
+    let exit = run_cargo_rustc(opts, &outfile)?;
     if exit != 0 {
         return Ok(exit);
     }
@@ -89,26 +89,11 @@ fn cargo_llvm_lines(opts: &LlvmLines) -> io::Result<i32> {
     Ok(0)
 }
 
-fn run_cargo_rustc(outfile: &Path) -> io::Result<i32> {
+fn run_cargo_rustc(opts: &LlvmLines, outfile: &Path) -> io::Result<i32> {
     // If cargo-llvm-lines was invoked from cargo, use the cargo that invoked it.
     let cargo = env::var_os("CARGO").unwrap_or_else(|| OsString::from("cargo"));
     let mut cmd = Command::new(cargo);
-
-    // Strip out options that are for cargo-llvm-lines itself.
-    let mut prev_was_filter = false;
-    let args = env::args_os().filter(|s| {
-        let x = s.to_string_lossy();
-        if x == "--filter" {
-            prev_was_filter = true;
-            return false;
-        } else if prev_was_filter {
-            prev_was_filter = false;
-            return false;
-        }
-        !["--sort", "-s", "lines", "copies"].contains(&x.as_ref())
-    });
-    propagate_args(&mut cmd, args, outfile);
-
+    propagate_opts(&mut cmd, opts, outfile);
     cmd.env("CARGO_INCREMENTAL", "");
     cmd.stdout(Stdio::inherit());
     cmd.stderr(Stdio::piped());
@@ -166,19 +151,93 @@ fn read_llvm_ir_from_paths(
 }
 
 // Based on https://github.com/rsolomo/cargo-check
-fn propagate_args<I>(cmd: &mut Command, it: I, outfile: &Path)
-where
-    I: IntoIterator<Item = OsString>,
-{
+fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
+    let LlvmLines {
+        // Strip out options that are for cargo-llvm-lines itself.
+        sort: _,
+        filter: _,
+        files: _,
+        filter_cargo: _,
+        help: _,
+        version: _,
+
+        // Options to pass through to the cargo rustc invocation.
+        quiet,
+        ref package,
+        lib,
+        ref bin,
+        ref example,
+        ref test,
+        release,
+        ref profile,
+        ref features,
+        all_features,
+        no_default_features,
+        ref target,
+        ref manifest_path,
+        ref rest,
+    } = *opts;
+
     cmd.arg("rustc");
 
-    // Skip the `cargo-llvm-lines` and `llvm-lines` arguments.
-    let mut it = it.into_iter().skip(2);
-    for arg in &mut it {
-        if arg == *"--" {
-            break;
-        }
-        cmd.arg(arg);
+    if quiet {
+        cmd.arg("--quiet");
+    }
+
+    if let Some(package) = package {
+        cmd.arg("--package");
+        cmd.arg(package);
+    }
+
+    if lib {
+        cmd.arg("--lib");
+    }
+
+    if let Some(bin) = bin {
+        cmd.arg("--bin");
+        cmd.arg(bin);
+    }
+
+    if let Some(example) = example {
+        cmd.arg("--example");
+        cmd.arg(example);
+    }
+
+    if let Some(test) = test {
+        cmd.arg("--test");
+        cmd.arg(test);
+    }
+
+    if release {
+        cmd.arg("--release");
+    }
+
+    if let Some(profile) = profile {
+        cmd.arg("--profile");
+        cmd.arg(profile);
+    }
+
+    if let Some(features) = features {
+        cmd.arg("--features");
+        cmd.arg(features);
+    }
+
+    if all_features {
+        cmd.arg("--all-features");
+    }
+
+    if no_default_features {
+        cmd.arg("--no-default-features");
+    }
+
+    if let Some(target) = target {
+        cmd.arg("--target");
+        cmd.arg(target);
+    }
+
+    if let Some(manifest_path) = manifest_path {
+        cmd.arg("--manifest-path");
+        cmd.arg(manifest_path);
     }
 
     let color = atty::is(Stderr);
@@ -200,7 +259,7 @@ where
     cmd.arg("-Cpasses=name-anon-globals");
     cmd.arg("-o");
     cmd.arg(outfile);
-    cmd.args(it);
+    cmd.args(rest);
 }
 
 /// Print lines from stdin to stderr, skipping lines that `ignore` succeeds on.
