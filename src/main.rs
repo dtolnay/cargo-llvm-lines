@@ -18,7 +18,7 @@ mod opts;
 mod table;
 
 use crate::count::{count_lines, Instantiations};
-use crate::opts::{LlvmLines, SortOrder, Subcommand};
+use crate::opts::{Coloring, LlvmLines, SortOrder, Subcommand};
 use atty::Stream::Stderr;
 use clap::{CommandFactory, Parser};
 use regex::Regex;
@@ -172,6 +172,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         ref features,
         all_features,
         no_default_features,
+        color,
         frozen,
         locked,
         offline,
@@ -232,6 +233,19 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         cmd.arg("--no-default-features");
     }
 
+    cmd.arg("--color");
+    cmd.arg(match color {
+        Some(Coloring::Always) => "always",
+        Some(Coloring::Never) => "never",
+        None | Some(Coloring::Auto) => {
+            if atty::is(Stderr) {
+                "always"
+            } else {
+                "never"
+            }
+        }
+    });
+
     if frozen {
         cmd.arg("--frozen");
     }
@@ -253,10 +267,6 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         cmd.arg("--manifest-path");
         cmd.arg(manifest_path);
     }
-
-    let color = atty::is(Stderr);
-    cmd.arg("--color");
-    cmd.arg(if color { "always" } else { "never" });
 
     // The `-Cno-prepopulate-passes` means we skip LLVM optimizations, which is
     // good because (a) we count the LLVM IR lines are sent to LLVM, not how

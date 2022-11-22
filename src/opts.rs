@@ -91,6 +91,8 @@ pub struct LlvmLines {
     pub all_features: bool,
     #[arg(long)]
     pub no_default_features: bool,
+    #[arg(long, value_name = "WHEN", hide_possible_values = true)]
+    pub color: Option<Coloring>,
     #[arg(long)]
     pub frozen: bool,
     #[arg(long)]
@@ -116,6 +118,13 @@ pub struct LlvmLines {
 pub enum SortOrder {
     Lines,
     Copies,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy)]
+pub enum Coloring {
+    Auto,
+    Always,
+    Never,
 }
 
 #[test]
