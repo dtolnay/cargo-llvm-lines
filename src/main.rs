@@ -60,8 +60,12 @@ fn main() {
         return;
     }
 
-    let result = if files.is_empty() {
-        cargo_llvm_lines(filter_cargo, sort, function_filter.as_ref())
+    // If `--filter-cargo` was specified, just filter the output and exit early.
+    let result = if filter_cargo {
+        filter_err();
+        Ok(0)
+    } else if files.is_empty() {
+        cargo_llvm_lines(sort, function_filter.as_ref())
     } else {
         read_llvm_ir_from_paths(&files, sort, function_filter.as_ref())
     };
@@ -75,16 +79,7 @@ fn main() {
     });
 }
 
-fn cargo_llvm_lines(
-    filter_cargo: bool,
-    sort_order: SortOrder,
-    function_filter: Option<&Regex>,
-) -> io::Result<i32> {
-    // If `--filter-cargo` was specified, just filter the output and exit early.
-    if filter_cargo {
-        filter_err();
-    }
-
+fn cargo_llvm_lines(sort_order: SortOrder, function_filter: Option<&Regex>) -> io::Result<i32> {
     let outdir = TempDir::new("cargo-llvm-lines").expect("failed to create tmp file");
     let outfile = outdir.path().join("crate");
 
@@ -231,7 +226,7 @@ where
 }
 
 /// Print lines from stdin to stderr, skipping lines that `ignore` succeeds on.
-fn filter_err() -> ! {
+fn filter_err() {
     let mut line = String::new();
     while let Ok(n) = io::stdin().read_line(&mut line) {
         if n == 0 {
@@ -242,7 +237,6 @@ fn filter_err() -> ! {
         }
         line.clear();
     }
-    process::exit(0);
 }
 
 /// Match Cargo output lines that we don't want to be printed.
