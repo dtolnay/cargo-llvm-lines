@@ -108,3 +108,8 @@ pub enum SortOrder {
     Lines,
     Copies,
 }
+
+#[test]
+fn test_cli() {
+    <Subcommand as clap::CommandFactory>::command().debug_assert();
+}
