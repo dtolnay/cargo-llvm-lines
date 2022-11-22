@@ -82,7 +82,7 @@ fn cargo_llvm_lines(
 ) -> io::Result<i32> {
     // If `--filter-cargo` was specified, just filter the output and exit early.
     if filter_cargo {
-        filter_err(ignore_cargo_err);
+        filter_err();
     }
 
     let outdir = TempDir::new("cargo-llvm-lines").expect("failed to create tmp file");
@@ -231,13 +231,13 @@ where
 }
 
 /// Print lines from stdin to stderr, skipping lines that `ignore` succeeds on.
-fn filter_err(ignore: fn(&str) -> bool) -> ! {
+fn filter_err() -> ! {
     let mut line = String::new();
     while let Ok(n) = io::stdin().read_line(&mut line) {
         if n == 0 {
             break;
         }
-        if !ignore(&line) {
+        if !ignore_cargo_err(&line) {
             let _ = write!(io::stderr(), "{}", line);
         }
         line.clear();
