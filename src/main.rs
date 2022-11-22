@@ -23,7 +23,7 @@ use clap::{CommandFactory, Parser};
 use regex::Regex;
 use std::collections::HashMap as Map;
 use std::env;
-use std::ffi::{OsStr, OsString};
+use std::ffi::OsString;
 use std::fs;
 use std::io::{self, ErrorKind, Write};
 use std::path::{Path, PathBuf};
@@ -116,28 +116,20 @@ fn run_cargo_rustc(outfile: &Path) -> io::Result<i32> {
             !["--sort", "-s", "lines", "copies"].contains(&x.as_ref())
         })
         .collect();
-    propagate_args(&mut cmd, args.clone(), outfile);
+    propagate_args(&mut cmd, args, outfile);
 
     cmd.env("CARGO_INCREMENTAL", "");
     cmd.stdout(Stdio::inherit());
     cmd.stderr(Stdio::piped());
     let mut child = cmd.spawn()?;
 
-    // Duplicate the original command, and insert `--filter-cargo` just after
-    // the `cargo-llvm-lines` and `llvm-lines` arguments.
-    //
-    // Note: the `--filter-cargo` must be inserted there, rather than appended
-    // to the end, so that it comes before a possible `--` arguments. Otherwise
-    // it will be ignored by the recursive invocation.
-    let mut filter_cargo = Vec::new();
-    filter_cargo.extend(args.iter().map(OsString::as_os_str));
-    filter_cargo.insert(2, OsStr::new("--filter-cargo"));
-
     // Filter stderr through a second invocation of `cargo-llvm-lines` that has
     // `--filter-cargo` specified so that it just does the filtering in
     // `filter_err()` above.
-    let mut errcmd = Command::new(filter_cargo[0]);
-    errcmd.args(&filter_cargo[1..]);
+    let current_exe = env::current_exe()?;
+    let mut errcmd = Command::new(current_exe);
+    errcmd.arg("llvm-lines");
+    errcmd.arg("--filter-cargo");
     errcmd.stdin(child.stderr.take().ok_or(io::ErrorKind::BrokenPipe)?);
     errcmd.stdout(Stdio::null());
     errcmd.stderr(Stdio::inherit());
