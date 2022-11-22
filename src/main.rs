@@ -122,7 +122,7 @@ fn run_cargo_rustc(outfile: &Path) -> io::Result<i32> {
             !["--sort", "-s", "lines", "copies"].contains(&x.as_ref())
         })
         .collect();
-    cmd.args(&wrap_args(args.clone(), outfile));
+    propagate_args(&mut cmd, args.clone(), outfile);
 
     cmd.env("CARGO_INCREMENTAL", "");
     cmd.stdout(Stdio::inherit());
@@ -189,7 +189,7 @@ fn read_llvm_ir_from_paths(
 }
 
 // Based on https://github.com/rsolomo/cargo-check
-fn wrap_args<I>(it: I, outfile: &Path) -> Vec<OsString>
+fn propagate_args<I>(cmd: &mut Command, it: I, outfile: &Path)
 where
     I: IntoIterator<Item = OsString>,
 {
@@ -228,7 +228,7 @@ where
     args.push("-o".into());
     args.push(outfile.into());
     args.extend(it);
-    args
+    cmd.args(args);
 }
 
 /// Print lines from stdin to stderr, skipping lines that `ignore` succeeds on.
