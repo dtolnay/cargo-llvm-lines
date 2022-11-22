@@ -103,19 +103,17 @@ fn run_cargo_rustc(outfile: &Path) -> io::Result<i32> {
 
     // Strip out options that are for cargo-llvm-lines itself.
     let mut prev_was_filter = false;
-    let args: Vec<_> = env::args_os()
-        .filter(|s| {
-            let x = s.to_string_lossy();
-            if x == "--filter" {
-                prev_was_filter = true;
-                return false;
-            } else if prev_was_filter {
-                prev_was_filter = false;
-                return false;
-            }
-            !["--sort", "-s", "lines", "copies"].contains(&x.as_ref())
-        })
-        .collect();
+    let args = env::args_os().filter(|s| {
+        let x = s.to_string_lossy();
+        if x == "--filter" {
+            prev_was_filter = true;
+            return false;
+        } else if prev_was_filter {
+            prev_was_filter = false;
+            return false;
+        }
+        !["--sort", "-s", "lines", "copies"].contains(&x.as_ref())
+    });
     propagate_args(&mut cmd, args, outfile);
 
     cmd.env("CARGO_INCREMENTAL", "");
