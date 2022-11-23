@@ -6,7 +6,6 @@
 
 #![allow(
     clippy::cast_precision_loss,
-    clippy::let_underscore_drop,
     clippy::module_name_repetitions,
     clippy::struct_excessive_bools,
     clippy::too_many_lines,
