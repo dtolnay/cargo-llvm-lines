@@ -2,7 +2,7 @@
 
 [<img alt="github" src="https://img.shields.io/badge/github-dtolnay/cargo--llvm--lines-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/dtolnay/cargo-llvm-lines)
 [<img alt="crates.io" src="https://img.shields.io/crates/v/cargo-llvm-lines.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/cargo-llvm-lines)
-[<img alt="build status" src="https://img.shields.io/github/workflow/status/dtolnay/cargo-llvm-lines/CI/master?style=for-the-badge" height="20">](https://github.com/dtolnay/cargo-llvm-lines/actions?query=branch%3Amaster)
+[<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/dtolnay/cargo-llvm-lines/ci.yml?branch=master&style=for-the-badge" height="20">](https://github.com/dtolnay/cargo-llvm-lines/actions?query=branch%3Amaster)
 
 Count the number of lines of LLVM IR across all instantiations of a generic
 function. Based on a suggestion from **@eddyb** on how to count monomorphized
