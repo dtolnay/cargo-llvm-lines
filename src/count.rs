@@ -58,5 +58,5 @@ fn has_hash(name: &str) -> bool {
 }
 
 fn is_ascii_hexdigit(byte: u8) -> bool {
-    (b'0'..=b'9').contains(&byte) || (b'a'..=b'f').contains(&byte)
+    byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte)
 }
