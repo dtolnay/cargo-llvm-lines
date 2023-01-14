@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: [nightly, beta, stable, 1.60.0]
+        rust: [nightly, beta, stable, 1.64.0]
         include:
           - rust: nightly
             target: Windows
