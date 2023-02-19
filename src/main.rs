@@ -29,7 +29,7 @@ use std::fs;
 use std::io::{self, BufRead, ErrorKind, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, Stdio};
-use tempdir::TempDir;
+use tempfile::TempDir;
 
 cargo_subcommand_metadata::description!(
     "Count the number of lines of LLVM IR across all instantiations of a generic function"
@@ -69,7 +69,10 @@ fn main() {
 }
 
 fn cargo_llvm_lines(opts: &LlvmLines) -> io::Result<i32> {
-    let outdir = TempDir::new("cargo-llvm-lines").expect("failed to create tmp file");
+    let outdir = tempfile::Builder::new()
+        .prefix("cargo-llvm-lines")
+        .tempdir()
+        .expect("failed to create tmp file");
     let outfile = outdir.path().join("crate");
 
     // If cargo-llvm-lines was invoked from cargo, use the cargo that invoked it.
