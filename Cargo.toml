@@ -16,7 +16,7 @@ cargo-subcommand-metadata = "0.1"
 clap = { version = "4", features = ["deprecated", "derive", "wrap_help"] }
 regex = "1.7.0"
 rustc-demangle = "0.1"
-tempdir = "0.3"
+tempfile = "3"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
