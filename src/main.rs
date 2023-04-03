@@ -20,8 +20,8 @@ mod table;
 
 use crate::count::{count_lines, Instantiations};
 use crate::opts::{Coloring, LlvmLines, SortOrder, Subcommand};
-use atty::Stream::Stderr;
 use clap::{CommandFactory, Parser};
+use is_terminal::IsTerminal;
 use regex::Regex;
 use std::collections::HashMap as Map;
 use std::env;
@@ -218,7 +218,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         Some(Coloring::Always) => "always",
         Some(Coloring::Never) => "never",
         None | Some(Coloring::Auto) => {
-            if env::var_os("NO_COLOR").is_none() && atty::is(Stderr) {
+            if env::var_os("NO_COLOR").is_none() && io::stderr().is_terminal() {
                 "always"
             } else {
                 "never"
