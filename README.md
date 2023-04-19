@@ -4,15 +4,10 @@
 [<img alt="crates.io" src="https://img.shields.io/crates/v/cargo-llvm-lines.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/cargo-llvm-lines)
 [<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/dtolnay/cargo-llvm-lines/ci.yml?branch=master&style=for-the-badge" height="20">](https://github.com/dtolnay/cargo-llvm-lines/actions?query=branch%3Amaster)
 
-Count the number of lines of LLVM IR across all instantiations of a generic
-function. Based on a suggestion from **@eddyb** on how to count monomorphized
-functions in order to debug compiler memory usage, executable size and compile
-time.
-
-> **\<eddyb>** unoptimized LLVM IR<br>
-> **\<eddyb>** first used grep '^define' to get only the lines defining function bodies<br>
-> **\<eddyb>** then regex replace in my editor to remove everything before @ and everything after (<br>
-> **\<eddyb>** then sort | uniq -c<br>
+Generic functions in Rust can be instantiated many times, which can increase
+compile speed and memory use, and the size of compiled executables. This tool
+measures the number and size of instantiations, indicating which parts of your
+code could be rewritten to improve things.
 
 ## Installation
 
@@ -20,17 +15,7 @@ Install with `cargo install cargo-llvm-lines`.
 
 ## Output
 
-One line per function with three columns of output:
-
-1. Total number of lines of LLVM IR generated across all instantiations of the
-   function (plus the percentage of the total and the cumulative percentage
-   of all functions so far).
-2. Number of instantiations of the function (plus the percentage of the total
-   and the cumulative percentage of all functions so far). For a generic
-   function, the number of instantiations is roughly the number of distinct
-   combinations of generic type parameters it is called with.
-3. Name of the function.
-
+Example output from running `cargo llvm-lines` on `clap`:
 ```
 $ cargo llvm-lines | head -20
 
@@ -54,8 +39,17 @@ $ cargo llvm-lines | head -20
     470 (0.9%, 24.0%)    11 (0.6%,  7.7%)  core::option::Option<T>::ok_or_else
     438 (0.8%, 24.9%)     2 (0.1%,  7.9%)  alloc::slice::merge
     414 (0.8%, 25.7%)     9 (0.5%,  8.3%)  core::result::Result<T,E>::and_then
-
 ```
+There is one line per function with three columns of output:
+
+1. Total number of lines of LLVM IR generated across all instantiations of the
+   function (plus the percentage of the total and the cumulative percentage
+   of all functions so far).
+2. Number of instantiations of the function (plus the percentage of the total
+   and the cumulative percentage of all functions so far). For a generic
+   function, the number of instantiations is roughly the number of distinct
+   combinations of generic type parameters it is called with.
+3. Name of the function.
 
 ## Multicrate Projects
 
@@ -79,6 +73,16 @@ invocation to get a full picture:
 ```console
 $ CARGO_PROFILE_RELEASE_LTO=fat cargo llvm-lines --release
 ```
+
+## Genesis
+
+Based on a suggestion from **@eddyb** on how to count monomorphized functions
+in order to debug compiler memory usage, executable size and compile time.
+
+> **\<eddyb>** unoptimized LLVM IR<br>
+> **\<eddyb>** first used grep '^define' to get only the lines defining function bodies<br>
+> **\<eddyb>** then regex replace in my editor to remove everything before @ and everything after (<br>
+> **\<eddyb>** then sort | uniq -c<br>
 
 <br>
 
