@@ -76,7 +76,7 @@ invocation to get a full picture:
 $ CARGO_PROFILE_RELEASE_LTO=fat cargo llvm-lines --release
 ```
 
-## Genesis
+## Acknowledgements
 
 Based on a suggestion from **@eddyb** on how to count monomorphized functions
 in order to debug compiler memory usage, executable size and compile time.
