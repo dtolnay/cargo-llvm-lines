@@ -16,7 +16,8 @@ Install with `cargo install cargo-llvm-lines`.
 ## Output
 
 Example output from running `cargo llvm-lines` on `clap`:
-```
+
+```console
 $ cargo llvm-lines | head -20
 
   Lines                Copies              Function name
@@ -40,6 +41,7 @@ $ cargo llvm-lines | head -20
     438 (0.8%, 24.9%)     2 (0.1%,  7.9%)  alloc::slice::merge
     414 (0.8%, 25.7%)     9 (0.5%,  8.3%)  core::result::Result<T,E>::and_then
 ```
+
 There is one line per function with three columns of output:
 
 1. Total number of lines of LLVM IR generated across all instantiations of the
