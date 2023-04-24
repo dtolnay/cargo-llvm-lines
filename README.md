@@ -7,7 +7,8 @@
 Generic functions in Rust can be instantiated multiple times, so they can
 disproportionately affect compile time, compiler memory usage, and the size of
 compiled executables. This tool measures the number and size of instantiations,
-indicating which parts of your code could be rewritten to improve things.
+indicating which parts of your code offer the highest leverage in improving
+compilation metrics.
 
 ## Installation
 
