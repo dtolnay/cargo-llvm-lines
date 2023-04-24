@@ -22,24 +22,24 @@ $ cargo llvm-lines | head -20
 
   Lines                Copies              Function name
   -----                ------              -------------
-  52262                1872                (TOTAL)
-   1815 (3.5%,  3.5%)     1 (0.1%,  0.1%)  <cargo_llvm_lines::Opt as clap::derive::Subcommand>::augment_subcommands
-   1806 (3.5%,  6.9%)     1 (0.1%,  0.1%)  <cargo_llvm_lines::Opt as clap::derive::FromArgMatches>::from_arg_matches_mut
-   1546 (3.0%,  9.9%)    34 (1.8%,  1.9%)  core::option::Option<T>::map
-   1045 (2.0%, 11.9%)     5 (0.3%,  2.2%)  clap::parser::matches::arg_matches::ArgMatches::try_remove_arg_t
-    738 (1.4%, 13.3%)     2 (0.1%,  2.3%)  alloc::slice::merge_sort
-    648 (1.2%, 14.5%)     4 (0.2%,  2.5%)  alloc::raw_vec::RawVec<T,A>::grow_amortized
-    645 (1.2%, 15.8%)     6 (0.3%,  2.8%)  <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
-    636 (1.2%, 17.0%)    43 (2.3%,  5.1%)  <cargo_llvm_lines::Opt as clap::derive::FromArgMatches>::from_arg_matches_mut::{{closure}}
-    587 (1.1%, 18.1%)    15 (0.8%,  5.9%)  <core::result::Result<T,E> as core::ops::try_trait::Try>::branch
-    565 (1.1%, 19.2%)     6 (0.3%,  6.2%)  core::iter::traits::iterator::Iterator::try_fold
-    533 (1.0%, 20.2%)     1 (0.1%,  6.3%)  cargo_llvm_lines::print_table
-    520 (1.0%, 21.2%)     6 (0.3%,  6.6%)  alloc::vec::Vec<T,A>::extend_desugared
-    509 (1.0%, 22.2%)     5 (0.3%,  6.9%)  clap::parser::matches::any_value::AnyValue::downcast_into
-    504 (1.0%, 23.1%)     5 (0.3%,  7.2%)  alloc::sync::Arc<T>::try_unwrap
-    470 (0.9%, 24.0%)    11 (0.6%,  7.7%)  core::option::Option<T>::ok_or_else
-    438 (0.8%, 24.9%)     2 (0.1%,  7.9%)  alloc::slice::merge
-    414 (0.8%, 25.7%)     9 (0.5%,  8.3%)  core::result::Result<T,E>::and_then
+  51637                1222                (TOTAL)
+   2240 (4.3%,  4.3%)     1 (0.1%,  0.1%)  <cargo_llvm_lines::opts::LlvmLines as clap_builder::derive::Args>::augment_args
+   1190 (2.3%,  6.6%)     1 (0.1%,  0.2%)  <cargo_llvm_lines::opts::LlvmLines as clap_builder::derive::FromArgMatches>::from_arg_matches_mut
+   1005 (1.9%,  8.6%)     3 (0.2%,  0.4%)  alloc::raw_vec::RawVec<T,A>::grow_amortized
+    973 (1.9%, 10.5%)     7 (0.6%,  1.0%)  clap_builder::parser::matches::arg_matches::ArgMatches::try_remove_arg_t
+    939 (1.8%, 12.3%)     7 (0.6%,  1.6%)  alloc::sync::Arc<T>::try_unwrap
+    935 (1.8%, 14.1%)     6 (0.5%,  2.0%)  <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+    861 (1.7%, 15.8%)     7 (0.6%,  2.6%)  alloc::sync::Arc<dyn core::any::Any+core::marker::Send+core::marker::Sync>::downcast
+    761 (1.5%, 17.2%)     5 (0.4%,  3.0%)  alloc::vec::Vec<T,A>::extend_desugared
+    638 (1.2%, 18.5%)     1 (0.1%,  3.1%)  cargo_llvm_lines::table::print
+    599 (1.2%, 19.6%)    16 (1.3%,  4.4%)  core::option::Option<T>::ok_or_else
+    592 (1.1%, 20.8%)     2 (0.2%,  4.6%)  core::slice::sort::merge
+    574 (1.1%, 21.9%)     2 (0.2%,  4.7%)  core::slice::sort::merge_sort
+    561 (1.1%, 23.0%)     7 (0.6%,  5.3%)  clap_builder::parser::matches::any_value::AnyValue::downcast_into
+    556 (1.1%, 24.1%)     4 (0.3%,  5.6%)  <core::slice::iter::Iter<T> as core::iter::traits::iterator::Iterator>::next
+    541 (1.0%, 25.1%)    16 (1.3%,  7.0%)  core::option::Option<T>::map
+    536 (1.0%, 26.1%)     8 (0.7%,  7.6%)  <alloc::sync::Weak<T> as core::ops::drop::Drop>::drop
+    533 (1.0%, 27.2%)     1 (0.1%,  7.7%)  core::str::pattern::simd_contains
 ```
 
 There is one line per function with three columns of output:
