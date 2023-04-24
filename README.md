@@ -15,7 +15,7 @@ Install with `cargo install cargo-llvm-lines`.
 
 ## Output
 
-Example output from running `cargo llvm-lines` on `clap`:
+Example output from running `cargo llvm-lines` on its own codebase:
 
 ```console
 $ cargo llvm-lines | head -20
