@@ -4,11 +4,13 @@
 [<img alt="crates.io" src="https://img.shields.io/crates/v/cargo-llvm-lines.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/cargo-llvm-lines)
 [<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/dtolnay/cargo-llvm-lines/ci.yml?branch=master&style=for-the-badge" height="20">](https://github.com/dtolnay/cargo-llvm-lines/actions?query=branch%3Amaster)
 
+This tool measures the number and size of instantiations of each generic
+function in a program, indicating which parts of your code offer the highest
+leverage in improving compilation metrics.
+
 Generic functions in Rust can be instantiated multiple times, so they can
 disproportionately affect compile time, compiler memory usage, and the size of
-compiled executables. This tool measures the number and size of instantiations,
-indicating which parts of your code offer the highest leverage in improving
-compilation metrics.
+compiled executables.
 
 ## Installation
 
