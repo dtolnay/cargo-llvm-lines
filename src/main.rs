@@ -147,6 +147,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         ref bin,
         ref example,
         ref test,
+        ref bench,
         release,
         ref profile,
         ref features,
@@ -189,6 +190,11 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
     if let Some(test) = test {
         cmd.arg("--test");
         cmd.arg(test);
+    }
+
+    if let Some(bench) = bench {
+        cmd.arg("--bench");
+        cmd.arg(bench);
     }
 
     if release {

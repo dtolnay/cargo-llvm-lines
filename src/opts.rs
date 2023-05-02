@@ -76,6 +76,8 @@ pub struct LlvmLines {
     pub example: Option<String>,
     #[arg(long, value_name = "NAME")]
     pub test: Option<String>,
+    #[arg(long, value_name = "NAME")]
+    pub bench: Option<String>,
     #[arg(long)]
     pub release: bool,
     #[arg(long, value_name = "PROFILE-NAME")]
