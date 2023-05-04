@@ -64,7 +64,7 @@ dependencies are not included. To assess the contribution of an intermediate
 crate, use the `-p` flag:
 
 ```console
-$ cargo llvm-lines -p some-depenency
+$ cargo llvm-lines -p some-dependency
 ```
 
 Note however, that Rust generics are monomorphised &mdash; a generic function
