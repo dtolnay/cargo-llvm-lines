@@ -38,6 +38,7 @@ jobs:
       - name: Enable type layout randomization
         run: echo RUSTFLAGS=${RUSTFLAGS}\ -Zrandomize-layout >> $GITHUB_ENV
         if: matrix.rust == 'nightly'
+      - run: cargo check --locked
       - run: cargo update
       - run: cargo run -- llvm-lines
       - run: cargo test
