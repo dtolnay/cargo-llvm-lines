@@ -20,11 +20,12 @@ jobs:
     name: Rust ${{matrix.rust}} on ${{matrix.target || 'Linux'}}
     needs: pre_ci
     if: needs.pre_ci.outputs.continue
-    runs-on: ${{matrix.os || 'ubuntu'}}-latest
+    runs-on: ${{matrix.os}}-latest
     strategy:
       fail-fast: false
       matrix:
         rust: [nightly, beta, stable, 1.64.0]
+        os: [ubuntu]
         include:
           - rust: nightly
             target: Windows
