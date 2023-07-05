@@ -14,7 +14,7 @@ repository = "https://github.com/dtolnay/cargo-llvm-lines"
 cargo-subcommand-metadata = "0.1"
 clap = { version = "4", features = ["deprecated", "derive", "wrap_help"] }
 is-terminal = "0.4"
-regex = "1.7.0"
+regex = "1.9"
 rustc-demangle = "0.1"
 tempfile = "3.4"
 
