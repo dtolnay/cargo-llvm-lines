@@ -159,6 +159,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         offline,
         ref target,
         ref manifest_path,
+        ref nightly_only_flags,
         ref rest,
     } = *opts;
 
@@ -252,6 +253,11 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
     if let Some(manifest_path) = manifest_path {
         cmd.arg("--manifest-path");
         cmd.arg(manifest_path);
+    }
+
+    for flag in nightly_only_flags {
+        cmd.arg("-Z");
+        cmd.arg(flag);
     }
 
     // The `-Cno-prepopulate-passes` means we skip LLVM optimizations, which is
