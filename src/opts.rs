@@ -100,6 +100,8 @@ pub struct LlvmLines {
     pub target: Option<String>,
     #[arg(long, value_name = "PATH")]
     pub manifest_path: Option<String>,
+    #[arg(short = 'Z', value_name = "FLAG")]
+    pub nightly_only_flags: Vec<String>,
 
     #[arg(short, long)]
     pub help: bool,
