@@ -35,6 +35,11 @@ pub(crate) fn print(
                 key_lo.cmp(&key_hi)
             });
         }
+        SortOrder::Name => data.sort_by(|a, b| {
+            let key_lo = (&a.0, b.1.copies, b.1.total_lines);
+            let key_hi = (&b.0, a.1.copies, b.1.total_lines);
+            key_lo.cmp(&key_hi)
+        }),
     }
 
     let lines_width = total.total_lines.to_string().len();
