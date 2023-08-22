@@ -117,6 +117,7 @@ pub struct LlvmLines {
 pub enum SortOrder {
     Lines,
     Copies,
+    Name,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy)]
