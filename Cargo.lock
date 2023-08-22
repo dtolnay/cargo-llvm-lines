@@ -74,7 +74,7 @@ checksum = "b4682ae6287fcf752ecaabbfcc7b6f9b72aa33933dc23a554d853aea8eea8635"
 
 [[package]]
 name = "cargo-llvm-lines"
-version = "0.4.32"
+version = "0.4.33"
 dependencies = [
  "cargo-subcommand-metadata",
  "clap",
