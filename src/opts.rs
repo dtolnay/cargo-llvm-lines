@@ -19,6 +19,13 @@ const TEMPLATE: &str = "\
 
 {all-args}";
 
+// Help headings
+const PACKAGE_SELECTION: &str = "Package Selection";
+const TARGET_SELECTION: &str = "Target Selection";
+const FEATURE_SELECTION: &str = "Feature Selection";
+const COMPILATION_OPTIONS: &str = "Compilation Options";
+const MANIFEST_OPTIONS: &str = "Manifest Options";
+
 #[derive(Parser, Debug)]
 #[command(
     name = "cargo-llvm-lines",
@@ -66,39 +73,39 @@ pub struct LlvmLines {
     // All these options are passed through to the cargo rustc invocation.
     #[arg(short, long)]
     pub quiet: bool,
-    #[arg(short, long, value_name = "SPEC")]
+    #[arg(short, long, value_name = "SPEC", help_heading = PACKAGE_SELECTION)]
     pub package: Option<String>,
-    #[arg(long)]
+    #[arg(long, help_heading = TARGET_SELECTION)]
     pub lib: bool,
-    #[arg(long, value_name = "NAME")]
+    #[arg(long, value_name = "NAME", help_heading = TARGET_SELECTION)]
     pub bin: Option<String>,
-    #[arg(long, value_name = "NAME")]
+    #[arg(long, value_name = "NAME", help_heading = TARGET_SELECTION)]
     pub example: Option<String>,
-    #[arg(long, value_name = "NAME")]
+    #[arg(long, value_name = "NAME", help_heading = TARGET_SELECTION)]
     pub test: Option<String>,
-    #[arg(long, value_name = "NAME")]
+    #[arg(long, value_name = "NAME", help_heading = TARGET_SELECTION)]
     pub bench: Option<String>,
-    #[arg(long)]
+    #[arg(long, help_heading = COMPILATION_OPTIONS)]
     pub release: bool,
-    #[arg(long, value_name = "PROFILE-NAME")]
+    #[arg(long, value_name = "PROFILE-NAME", help_heading = COMPILATION_OPTIONS)]
     pub profile: Option<String>,
-    #[arg(long, value_name = "FEATURES")]
+    #[arg(long, value_name = "FEATURES", help_heading = FEATURE_SELECTION)]
     pub features: Option<String>,
-    #[arg(long)]
+    #[arg(long, help_heading = FEATURE_SELECTION)]
     pub all_features: bool,
-    #[arg(long)]
+    #[arg(long, help_heading = FEATURE_SELECTION)]
     pub no_default_features: bool,
     #[arg(long, value_name = "WHEN", hide_possible_values = true)]
     pub color: Option<Coloring>,
-    #[arg(long)]
+    #[arg(long, help_heading = MANIFEST_OPTIONS)]
     pub frozen: bool,
-    #[arg(long)]
+    #[arg(long, help_heading = MANIFEST_OPTIONS)]
     pub locked: bool,
-    #[arg(long)]
+    #[arg(long, help_heading = MANIFEST_OPTIONS)]
     pub offline: bool,
-    #[arg(long, value_name = "TRIPLE")]
+    #[arg(long, value_name = "TRIPLE", help_heading = COMPILATION_OPTIONS)]
     pub target: Option<String>,
-    #[arg(long, value_name = "PATH")]
+    #[arg(long, value_name = "PATH", help_heading = MANIFEST_OPTIONS)]
     pub manifest_path: Option<String>,
     #[arg(short = 'Z', value_name = "FLAG")]
     pub nightly_only_flags: Vec<String>,
