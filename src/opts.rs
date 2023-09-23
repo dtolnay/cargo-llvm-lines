@@ -75,6 +75,8 @@ pub struct LlvmLines {
     pub quiet: bool,
     #[arg(long, value_name = "WHEN", hide_possible_values = true)]
     pub color: Option<Coloring>,
+    #[arg(long, value_name = "KEY=VALUE")]
+    pub config: Vec<String>,
     #[arg(short = 'Z', value_name = "FLAG")]
     pub nightly_only_flags: Vec<String>,
     #[arg(short, long)]

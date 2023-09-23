@@ -144,6 +144,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         // Options to pass through to the cargo rustc invocation.
         quiet,
         color,
+        ref config,
         ref nightly_only_flags,
         ref package,
         lib,
@@ -182,6 +183,11 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
             }
         }
     });
+
+    for kv in config {
+        cmd.arg("--config");
+        cmd.arg(kv);
+    }
 
     for flag in nightly_only_flags {
         cmd.arg("-Z");
