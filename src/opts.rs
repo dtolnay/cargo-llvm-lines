@@ -122,7 +122,7 @@ pub struct LlvmLines {
 
     // Manifest options
     #[arg(long, value_name = "PATH", help_heading = MANIFEST_OPTIONS)]
-    pub manifest_path: Option<String>,
+    pub manifest_path: Option<PathBuf>,
     #[arg(long, help_heading = MANIFEST_OPTIONS)]
     pub frozen: bool,
     #[arg(long, help_heading = MANIFEST_OPTIONS)]
