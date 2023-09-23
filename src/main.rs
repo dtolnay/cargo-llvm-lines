@@ -155,6 +155,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         ref features,
         all_features,
         no_default_features,
+        jobs,
         release,
         ref profile,
         ref target,
@@ -234,6 +235,11 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
 
     if no_default_features {
         cmd.arg("--no-default-features");
+    }
+
+    if let Some(jobs) = jobs {
+        cmd.arg("--jobs");
+        cmd.arg(jobs.to_string());
     }
 
     if release {

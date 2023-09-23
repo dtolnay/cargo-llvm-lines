@@ -109,6 +109,8 @@ pub struct LlvmLines {
     pub no_default_features: bool,
 
     // Compilation options
+    #[arg(short, long, value_name = "N", help_heading = COMPILATION_OPTIONS)]
+    pub jobs: Option<usize>,
     #[arg(long, help_heading = COMPILATION_OPTIONS)]
     pub release: bool,
     #[arg(long, value_name = "PROFILE-NAME", help_heading = COMPILATION_OPTIONS)]
