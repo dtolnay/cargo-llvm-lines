@@ -75,6 +75,8 @@ pub struct LlvmLines {
     pub quiet: bool,
     #[arg(long, value_name = "WHEN", hide_possible_values = true)]
     pub color: Option<Coloring>,
+    #[arg(long, value_name = "KEY=VALUE")]
+    pub config: Vec<String>,
     #[arg(short = 'Z', value_name = "FLAG")]
     pub nightly_only_flags: Vec<String>,
     #[arg(short, long)]
@@ -107,12 +109,16 @@ pub struct LlvmLines {
     pub no_default_features: bool,
 
     // Compilation options
+    #[arg(short, long, value_name = "N", help_heading = COMPILATION_OPTIONS)]
+    pub jobs: Option<usize>,
     #[arg(long, help_heading = COMPILATION_OPTIONS)]
     pub release: bool,
     #[arg(long, value_name = "PROFILE-NAME", help_heading = COMPILATION_OPTIONS)]
     pub profile: Option<String>,
     #[arg(long, value_name = "TRIPLE", help_heading = COMPILATION_OPTIONS)]
     pub target: Option<String>,
+    #[arg(long, value_name = "DIRECTORY", help_heading = COMPILATION_OPTIONS)]
+    pub target_dir: Option<PathBuf>,
 
     // Manifest options
     #[arg(long, value_name = "PATH", help_heading = MANIFEST_OPTIONS)]

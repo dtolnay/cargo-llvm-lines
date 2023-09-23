@@ -144,6 +144,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         // Options to pass through to the cargo rustc invocation.
         quiet,
         color,
+        ref config,
         ref nightly_only_flags,
         ref package,
         lib,
@@ -154,9 +155,11 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         ref features,
         all_features,
         no_default_features,
+        jobs,
         release,
         ref profile,
         ref target,
+        ref target_dir,
         ref manifest_path,
         frozen,
         locked,
@@ -182,6 +185,11 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
             }
         }
     });
+
+    for kv in config {
+        cmd.arg("--config");
+        cmd.arg(kv);
+    }
 
     for flag in nightly_only_flags {
         cmd.arg("-Z");
@@ -230,6 +238,11 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         cmd.arg("--no-default-features");
     }
 
+    if let Some(jobs) = jobs {
+        cmd.arg("--jobs");
+        cmd.arg(jobs.to_string());
+    }
+
     if release {
         cmd.arg("--release");
     }
@@ -242,6 +255,11 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
     if let Some(target) = target {
         cmd.arg("--target");
         cmd.arg(target);
+    }
+
+    if let Some(target_dir) = target_dir {
+        cmd.arg("--target-dir");
+        cmd.arg(target_dir);
     }
 
     if let Some(manifest_path) = manifest_path {
