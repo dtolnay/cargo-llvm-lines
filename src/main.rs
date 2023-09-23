@@ -143,24 +143,24 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
 
         // Options to pass through to the cargo rustc invocation.
         quiet,
+        color,
+        ref nightly_only_flags,
         ref package,
         lib,
         ref bin,
         ref example,
         ref test,
         ref bench,
-        release,
-        ref profile,
         ref features,
         all_features,
         no_default_features,
-        color,
+        release,
+        ref profile,
+        ref target,
+        ref manifest_path,
         frozen,
         locked,
         offline,
-        ref target,
-        ref manifest_path,
-        ref nightly_only_flags,
         ref rest,
     } = *opts;
 
@@ -168,6 +168,24 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
 
     if quiet {
         cmd.arg("--quiet");
+    }
+
+    cmd.arg("--color");
+    cmd.arg(match color {
+        Some(Coloring::Always) => "always",
+        Some(Coloring::Never) => "never",
+        None | Some(Coloring::Auto) => {
+            if env::var_os("NO_COLOR").is_none() && io::stderr().is_terminal() {
+                "always"
+            } else {
+                "never"
+            }
+        }
+    });
+
+    for flag in nightly_only_flags {
+        cmd.arg("-Z");
+        cmd.arg(flag);
     }
 
     if let Some(package) = package {
@@ -199,15 +217,6 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         cmd.arg(bench);
     }
 
-    if release {
-        cmd.arg("--release");
-    }
-
-    if let Some(profile) = profile {
-        cmd.arg("--profile");
-        cmd.arg(profile);
-    }
-
     if let Some(features) = features {
         cmd.arg("--features");
         cmd.arg(features);
@@ -221,29 +230,13 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         cmd.arg("--no-default-features");
     }
 
-    cmd.arg("--color");
-    cmd.arg(match color {
-        Some(Coloring::Always) => "always",
-        Some(Coloring::Never) => "never",
-        None | Some(Coloring::Auto) => {
-            if env::var_os("NO_COLOR").is_none() && io::stderr().is_terminal() {
-                "always"
-            } else {
-                "never"
-            }
-        }
-    });
-
-    if frozen {
-        cmd.arg("--frozen");
+    if release {
+        cmd.arg("--release");
     }
 
-    if locked {
-        cmd.arg("--locked");
-    }
-
-    if offline {
-        cmd.arg("--offline");
+    if let Some(profile) = profile {
+        cmd.arg("--profile");
+        cmd.arg(profile);
     }
 
     if let Some(target) = target {
@@ -256,9 +249,16 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         cmd.arg(manifest_path);
     }
 
-    for flag in nightly_only_flags {
-        cmd.arg("-Z");
-        cmd.arg(flag);
+    if frozen {
+        cmd.arg("--frozen");
+    }
+
+    if locked {
+        cmd.arg("--locked");
+    }
+
+    if offline {
+        cmd.arg("--offline");
     }
 
     // The `-Cno-prepopulate-passes` means we skip LLVM optimizations, which is
