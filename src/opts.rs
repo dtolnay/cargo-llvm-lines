@@ -117,6 +117,8 @@ pub struct LlvmLines {
     pub profile: Option<String>,
     #[arg(long, value_name = "TRIPLE", help_heading = COMPILATION_OPTIONS)]
     pub target: Option<String>,
+    #[arg(long, value_name = "DIRECTORY", help_heading = COMPILATION_OPTIONS)]
+    pub target_dir: Option<PathBuf>,
 
     // Manifest options
     #[arg(long, value_name = "PATH", help_heading = MANIFEST_OPTIONS)]

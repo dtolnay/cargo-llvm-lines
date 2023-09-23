@@ -159,6 +159,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         release,
         ref profile,
         ref target,
+        ref target_dir,
         ref manifest_path,
         frozen,
         locked,
@@ -254,6 +255,11 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
     if let Some(target) = target {
         cmd.arg("--target");
         cmd.arg(target);
+    }
+
+    if let Some(target_dir) = target_dir {
+        cmd.arg("--target-dir");
+        cmd.arg(target_dir);
     }
 
     if let Some(manifest_path) = manifest_path {
