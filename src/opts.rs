@@ -70,11 +70,23 @@ pub struct LlvmLines {
     #[arg(short, long, value_name = "FILES")]
     pub files: Vec<PathBuf>,
 
-    // All these options are passed through to the cargo rustc invocation.
+    // The following options are passed through to the cargo rustc invocation.
     #[arg(short, long)]
     pub quiet: bool,
+    #[arg(long, value_name = "WHEN", hide_possible_values = true)]
+    pub color: Option<Coloring>,
+    #[arg(short = 'Z', value_name = "FLAG")]
+    pub nightly_only_flags: Vec<String>,
+    #[arg(short, long)]
+    pub help: bool,
+    #[arg(short = 'V', long)]
+    pub version: bool,
+
+    // Package selection
     #[arg(short, long, value_name = "SPEC", help_heading = PACKAGE_SELECTION)]
     pub package: Option<String>,
+
+    // Target selection
     #[arg(long, help_heading = TARGET_SELECTION)]
     pub lib: bool,
     #[arg(long, value_name = "NAME", help_heading = TARGET_SELECTION)]
@@ -85,35 +97,32 @@ pub struct LlvmLines {
     pub test: Option<String>,
     #[arg(long, value_name = "NAME", help_heading = TARGET_SELECTION)]
     pub bench: Option<String>,
-    #[arg(long, help_heading = COMPILATION_OPTIONS)]
-    pub release: bool,
-    #[arg(long, value_name = "PROFILE-NAME", help_heading = COMPILATION_OPTIONS)]
-    pub profile: Option<String>,
+
+    // Feature selection
     #[arg(long, value_name = "FEATURES", help_heading = FEATURE_SELECTION)]
     pub features: Option<String>,
     #[arg(long, help_heading = FEATURE_SELECTION)]
     pub all_features: bool,
     #[arg(long, help_heading = FEATURE_SELECTION)]
     pub no_default_features: bool,
-    #[arg(long, value_name = "WHEN", hide_possible_values = true)]
-    pub color: Option<Coloring>,
+
+    // Compilation options
+    #[arg(long, help_heading = COMPILATION_OPTIONS)]
+    pub release: bool,
+    #[arg(long, value_name = "PROFILE-NAME", help_heading = COMPILATION_OPTIONS)]
+    pub profile: Option<String>,
+    #[arg(long, value_name = "TRIPLE", help_heading = COMPILATION_OPTIONS)]
+    pub target: Option<String>,
+
+    // Manifest options
+    #[arg(long, value_name = "PATH", help_heading = MANIFEST_OPTIONS)]
+    pub manifest_path: Option<String>,
     #[arg(long, help_heading = MANIFEST_OPTIONS)]
     pub frozen: bool,
     #[arg(long, help_heading = MANIFEST_OPTIONS)]
     pub locked: bool,
     #[arg(long, help_heading = MANIFEST_OPTIONS)]
     pub offline: bool,
-    #[arg(long, value_name = "TRIPLE", help_heading = COMPILATION_OPTIONS)]
-    pub target: Option<String>,
-    #[arg(long, value_name = "PATH", help_heading = MANIFEST_OPTIONS)]
-    pub manifest_path: Option<String>,
-    #[arg(short = 'Z', value_name = "FLAG")]
-    pub nightly_only_flags: Vec<String>,
-
-    #[arg(short, long)]
-    pub help: bool,
-    #[arg(short = 'V', long)]
-    pub version: bool,
 
     // Any additional flags for rustc taken after `--`.
     #[arg(last = true, hide = true)]
