@@ -10,7 +10,7 @@ Options shown below without an explanation mean the same thing as the
 corresponding option of `cargo build`.";
 
 const TEMPLATE: &str = "\
-{bin} {version}
+cargo-llvm-lines {version}
 {author}
 {about}
 
