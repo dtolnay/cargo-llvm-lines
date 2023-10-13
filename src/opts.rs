@@ -101,7 +101,7 @@ pub struct LlvmLines {
     pub bench: Option<String>,
 
     // Feature selection
-    #[arg(long, value_name = "FEATURES", help_heading = FEATURE_SELECTION)]
+    #[arg(short = 'F', long, value_name = "FEATURES", help_heading = FEATURE_SELECTION)]
     pub features: Option<String>,
     #[arg(long, help_heading = FEATURE_SELECTION)]
     pub all_features: bool,
