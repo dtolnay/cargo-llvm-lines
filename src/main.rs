@@ -352,7 +352,16 @@ fn print_command(cmd: &Command, color: Coloring) -> Result<()> {
     for arg in cmd.get_args() {
         let arg_lossy = arg.to_string_lossy();
         shell_words.push(' ');
-        shell_words.push_str(&quoter.quote(&arg_lossy)?);
+        match arg_lossy.split_once('=') {
+            Some((flag, value)) if flag.starts_with('-') && flag == quoter.quote(flag)? => {
+                shell_words.push_str(flag);
+                shell_words.push('=');
+                if !value.is_empty() {
+                    shell_words.push_str(&quoter.quote(value)?);
+                }
+            }
+            _ => shell_words.push_str(&quoter.quote(&arg_lossy)?),
+        }
     }
 
     let color_choice = match color {
