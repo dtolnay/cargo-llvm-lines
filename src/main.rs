@@ -34,6 +34,7 @@ use std::io::{self, BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, Stdio};
 use tempfile::TempDir;
+use termcolor::{Color::Green, ColorChoice, ColorSpec, StandardStream, WriteColor as _};
 
 cargo_subcommand_metadata::description!(
     "Count the number of lines of LLVM IR across all instantiations of a generic function"
@@ -85,6 +86,11 @@ fn cargo_llvm_lines(opts: &LlvmLines) -> Result<i32> {
     propagate_opts(&mut cmd, opts, &outfile);
     cmd.env("CARGO_INCREMENTAL", "");
     cmd.stdout(Stdio::inherit());
+
+    if opts.verbose {
+        let color = opts.color.unwrap_or(Coloring::Auto);
+        print_command(&cmd, color);
+    }
 
     let exit = filter_err(&mut cmd)?;
     if exit != 0 {
@@ -141,6 +147,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         version: _,
 
         // Options to pass through to the cargo rustc invocation.
+        verbose,
         quiet,
         color,
         ref config,
@@ -167,6 +174,10 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
     } = *opts;
 
     cmd.arg("rustc");
+
+    if verbose {
+        cmd.arg("--verbose");
+    }
 
     if quiet {
         cmd.arg("--quiet");
@@ -345,4 +356,24 @@ fn ignore_cargo_err(line: &str) -> bool {
     }
 
     false
+}
+
+fn print_command(cmd: &Command, color: Coloring) {
+    let mut shell_words = String::new();
+    for arg in cmd.get_args() {
+        shell_words.push(' ');
+        shell_words.push_str(&arg.to_string_lossy());
+    }
+
+    let color_choice = match color {
+        Coloring::Auto => ColorChoice::Auto,
+        Coloring::Always => ColorChoice::Always,
+        Coloring::Never => ColorChoice::Never,
+    };
+
+    let mut stream = StandardStream::stderr(color_choice);
+    let _ = stream.set_color(ColorSpec::new().set_bold(true).set_fg(Some(Green)));
+    let _ = write!(stream, "{:>12}", "Running");
+    let _ = stream.reset();
+    let _ = writeln!(stream, " `cargo{}`", shell_words);
 }
