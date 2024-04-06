@@ -15,11 +15,13 @@
     clippy::unwrap_or_default
 )]
 
+mod cmd;
 mod count;
 mod error;
 mod opts;
 mod table;
 
+use crate::cmd::CommandExt as _;
 use crate::count::{count_lines, Instantiations};
 use crate::error::{Error, Result};
 use crate::opts::{Coloring, LlvmLines, SortOrder, Subcommand};
@@ -183,32 +185,28 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         cmd.arg("--quiet");
     }
 
-    cmd.arg("--color");
-    cmd.arg(match color {
-        Some(Coloring::Always) => "always",
-        Some(Coloring::Never) => "never",
+    match color {
+        Some(Coloring::Always) => cmd.flag_value("--color", "always"),
+        Some(Coloring::Never) => cmd.flag_value("--color", "never"),
         None | Some(Coloring::Auto) => {
             if env::var_os("NO_COLOR").is_none() && io::stderr().is_terminal() {
-                "always"
+                cmd.flag_value("--color", "always");
             } else {
-                "never"
+                cmd.flag_value("--color", "never");
             }
         }
-    });
+    }
 
     for kv in config {
-        cmd.arg("--config");
-        cmd.arg(kv);
+        cmd.flag_value("--config", kv);
     }
 
     for flag in nightly_only_flags {
-        cmd.arg("-Z");
-        cmd.arg(flag);
+        cmd.arg(format!("-Z{}", flag));
     }
 
     if let Some(package) = package {
-        cmd.arg("--package");
-        cmd.arg(package);
+        cmd.flag_value("--package", package);
     }
 
     if lib {
@@ -216,28 +214,23 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
     }
 
     if let Some(bin) = bin {
-        cmd.arg("--bin");
-        cmd.arg(bin);
+        cmd.flag_value("--bin", bin);
     }
 
     if let Some(example) = example {
-        cmd.arg("--example");
-        cmd.arg(example);
+        cmd.flag_value("--example", example);
     }
 
     if let Some(test) = test {
-        cmd.arg("--test");
-        cmd.arg(test);
+        cmd.flag_value("--test", test);
     }
 
     if let Some(bench) = bench {
-        cmd.arg("--bench");
-        cmd.arg(bench);
+        cmd.flag_value("--bench", bench);
     }
 
     if let Some(features) = features {
-        cmd.arg("--features");
-        cmd.arg(features);
+        cmd.flag_value("--features", features);
     }
 
     if all_features {
@@ -249,8 +242,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
     }
 
     if let Some(jobs) = jobs {
-        cmd.arg("--jobs");
-        cmd.arg(jobs.to_string());
+        cmd.flag_value("--jobs", jobs.to_string());
     }
 
     if release {
@@ -258,23 +250,19 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
     }
 
     if let Some(profile) = profile {
-        cmd.arg("--profile");
-        cmd.arg(profile);
+        cmd.flag_value("--profile", profile);
     }
 
     if let Some(target) = target {
-        cmd.arg("--target");
-        cmd.arg(target);
+        cmd.flag_value("--target", target);
     }
 
     if let Some(target_dir) = target_dir {
-        cmd.arg("--target-dir");
-        cmd.arg(target_dir);
+        cmd.flag_value("--target-dir", target_dir);
     }
 
     if let Some(manifest_path) = manifest_path {
-        cmd.arg("--manifest-path");
-        cmd.arg(manifest_path);
+        cmd.flag_value("--manifest-path", manifest_path);
     }
 
     if frozen {
