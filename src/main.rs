@@ -89,7 +89,7 @@ fn cargo_llvm_lines(opts: &LlvmLines) -> Result<i32> {
 
     if opts.verbose {
         let color = opts.color.unwrap_or(Coloring::Auto);
-        print_command(&cmd, color);
+        print_command(&cmd, color)?;
     }
 
     let exit = filter_err(&mut cmd)?;
@@ -358,11 +358,13 @@ fn ignore_cargo_err(line: &str) -> bool {
     false
 }
 
-fn print_command(cmd: &Command, color: Coloring) {
+fn print_command(cmd: &Command, color: Coloring) -> Result<()> {
     let mut shell_words = String::new();
+    let quoter = shlex::Quoter::new().allow_nul(true);
     for arg in cmd.get_args() {
+        let arg_lossy = arg.to_string_lossy();
         shell_words.push(' ');
-        shell_words.push_str(&arg.to_string_lossy());
+        shell_words.push_str(&quoter.quote(&arg_lossy)?);
     }
 
     let color_choice = match color {
@@ -376,4 +378,5 @@ fn print_command(cmd: &Command, color: Coloring) {
     let _ = write!(stream, "{:>12}", "Running");
     let _ = stream.reset();
     let _ = writeln!(stream, " `cargo{}`", shell_words);
+    Ok(())
 }

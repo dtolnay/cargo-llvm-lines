@@ -9,11 +9,18 @@ pub enum Error {
     Msg(&'static str),
     Io(io::Error),
     PathIo(PathBuf, io::Error),
+    Quote(shlex::QuoteError),
 }
 
 impl From<io::Error> for Error {
     fn from(error: io::Error) -> Self {
         Error::Io(error)
+    }
+}
+
+impl From<shlex::QuoteError> for Error {
+    fn from(error: shlex::QuoteError) -> Self {
+        Error::Quote(error)
     }
 }
 
@@ -23,6 +30,7 @@ impl Display for Error {
             Error::Msg(msg) => formatter.write_str(msg),
             Error::Io(e) => Display::fmt(e, formatter),
             Error::PathIo(path, e) => write!(formatter, "{}: {}", path.display(), e),
+            Error::Quote(e) => Display::fmt(e, formatter),
         }
     }
 }
@@ -33,6 +41,7 @@ impl std::error::Error for Error {
             Error::Msg(_) => None,
             Error::Io(e) => e.source(),
             Error::PathIo(_path, e) => e.source(),
+            Error::Quote(e) => e.source(),
         }
     }
 }
