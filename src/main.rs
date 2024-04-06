@@ -16,10 +16,12 @@
 )]
 
 mod count;
+mod error;
 mod opts;
 mod table;
 
 use crate::count::{count_lines, Instantiations};
+use crate::error::{Error, Result};
 use crate::opts::{Coloring, LlvmLines, SortOrder, Subcommand};
 use clap::{CommandFactory, Parser};
 use is_terminal::IsTerminal;
@@ -28,7 +30,7 @@ use std::collections::HashMap as Map;
 use std::env;
 use std::ffi::OsString;
 use std::fs;
-use std::io::{self, BufRead, ErrorKind, Write};
+use std::io::{self, BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, Stdio};
 use tempfile::TempDir;
@@ -70,7 +72,7 @@ fn main() {
     });
 }
 
-fn cargo_llvm_lines(opts: &LlvmLines) -> io::Result<i32> {
+fn cargo_llvm_lines(opts: &LlvmLines) -> Result<i32> {
     let outdir = tempfile::Builder::new()
         .prefix("cargo-llvm-lines")
         .tempdir()
@@ -97,34 +99,31 @@ fn cargo_llvm_lines(opts: &LlvmLines) -> io::Result<i32> {
     Ok(0)
 }
 
-fn read_llvm_ir_from_dir(outdir: &TempDir) -> io::Result<Vec<u8>> {
+fn read_llvm_ir_from_dir(outdir: &TempDir) -> Result<Vec<u8>> {
     for file in fs::read_dir(outdir)? {
         let path = file?.path();
         if let Some(ext) = path.extension() {
             if ext == "ll" {
-                return fs::read(path);
+                let content = fs::read(path)?;
+                return Ok(content);
             }
         }
     }
 
-    let msg = "Ran --emit=llvm-ir but did not find output IR";
-    Err(io::Error::new(ErrorKind::Other, msg))
+    Err(Error::Msg("Ran --emit=llvm-ir but did not find output IR"))
 }
 
 fn read_llvm_ir_from_paths(
     paths: &[PathBuf],
     sort_order: SortOrder,
     function_filter: Option<&Regex>,
-) -> io::Result<i32> {
+) -> Result<i32> {
     let mut instantiations = Map::<String, Instantiations>::new();
 
     for path in paths {
         match fs::read(path) {
             Ok(ir) => count_lines(&mut instantiations, &ir),
-            Err(err) => {
-                let msg = format!("{}: {}", path.display(), err);
-                return Err(io::Error::new(err.kind(), msg));
-            }
+            Err(err) => return Err(Error::PathIo(path.clone(), err)),
         }
     }
 
@@ -297,7 +296,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
     cmd.args(rest);
 }
 
-fn filter_err(cmd: &mut Command) -> io::Result<i32> {
+fn filter_err(cmd: &mut Command) -> Result<i32> {
     let mut child = cmd.stderr(Stdio::piped()).spawn()?;
     let mut stderr = io::BufReader::new(child.stderr.take().unwrap());
     let mut line = String::new();
