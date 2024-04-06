@@ -17,6 +17,7 @@ is-terminal = "0.4"
 regex = "1.9"
 rustc-demangle = "0.1"
 tempfile = "3.4"
+termcolor = "1.4"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]

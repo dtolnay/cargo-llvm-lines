@@ -71,6 +71,8 @@ pub struct LlvmLines {
     pub files: Vec<PathBuf>,
 
     // The following options are passed through to the cargo rustc invocation.
+    #[arg(long)]
+    pub verbose: bool,
     #[arg(short, long)]
     pub quiet: bool,
     #[arg(long, value_name = "WHEN", hide_possible_values = true)]
