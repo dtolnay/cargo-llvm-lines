@@ -287,7 +287,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
     // will likely cause errors in LLVM. Consider adding -C
     // passes=name-anon-globals to the compiler command line."
     cmd.arg("--");
-    cmd.arg("--emit=llvm-ir");
+    cmd.flag_value("--emit", "llvm-ir");
     cmd.arg("-Cno-prepopulate-passes");
     cmd.arg("-Cpasses=name-anon-globals");
     cmd.arg("-o");
