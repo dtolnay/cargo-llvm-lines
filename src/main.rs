@@ -25,6 +25,7 @@ use crate::cmd::CommandExt as _;
 use crate::count::{count_lines, Instantiations};
 use crate::error::{Error, Result};
 use crate::opts::{Coloring, LlvmLines, SortOrder, Subcommand};
+use anstream::{AutoStream, ColorChoice};
 use clap::{CommandFactory, Parser};
 use is_terminal::IsTerminal;
 use regex::Regex;
@@ -36,7 +37,6 @@ use std::io::{self, BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, Stdio};
 use tempfile::TempDir;
-use termcolor::{Color::Green, ColorChoice, ColorSpec, StandardStream, WriteColor as _};
 
 cargo_subcommand_metadata::description!(
     "Count the number of lines of LLVM IR across all instantiations of a generic function"
@@ -366,14 +366,16 @@ fn print_command(cmd: &Command, color: Coloring) -> Result<()> {
 
     let color_choice = match color {
         Coloring::Auto => ColorChoice::Auto,
+        // FIXME: add AlwaysAnsi?
         Coloring::Always => ColorChoice::Always,
         Coloring::Never => ColorChoice::Never,
     };
 
-    let mut stream = StandardStream::stderr(color_choice);
-    let _ = stream.set_color(ColorSpec::new().set_bold(true).set_fg(Some(Green)));
-    let _ = write!(stream, "{:>12}", "Running");
-    let _ = stream.reset();
+    let mut stream = AutoStream::new(std::io::stderr(), color_choice);
+    let style = anstyle::Style::new()
+        .bold()
+        .fg_color(Some(anstyle::AnsiColor::Green.into()));
+    let _ = write!(stream, "{style}{:>12}{style:#}", "Running");
     let _ = writeln!(stream, " `cargo{}`", shell_words);
     Ok(())
 }
