@@ -63,6 +63,7 @@ version = "0.4.40"
 dependencies = [
  "cargo-subcommand-metadata",
  "clap",
+ "clap-cargo",
  "regex-lite",
  "rustc-demangle",
  "shlex",
@@ -90,6 +91,16 @@ checksum = "3e5a21b8495e732f1b3c364c9949b201ca7bae518c502c80256c96ad79eaf6ac"
 dependencies = [
  "clap_builder",
  "clap_derive",
+]
+
+[[package]]
+name = "clap-cargo"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23b2ea69cefa96b848b73ad516ad1d59a195cdf9263087d977f648a818c8b43e"
+dependencies = [
+ "anstyle",
+ "clap",
 ]
 
 [[package]]
