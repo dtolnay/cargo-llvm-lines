@@ -32,7 +32,8 @@ const MANIFEST_OPTIONS: &str = "Manifest Options";
     bin_name = "cargo",
     author,
     version,
-    disable_help_subcommand = true
+    disable_help_subcommand = true,
+    styles = clap_cargo::style::CLAP_STYLING,
 )]
 #[allow(dead_code)]
 pub enum Subcommand {
@@ -50,6 +51,7 @@ pub enum Subcommand {
 }
 
 #[derive(Parser, Debug)]
+#[command(styles = clap_cargo::style::CLAP_STYLING)]
 pub struct LlvmLines {
     /// Set column by which to sort output table.
     #[arg(
