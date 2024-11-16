@@ -50,7 +50,7 @@ fn parse_function_name(line: &str) -> Option<String> {
 fn has_hash(name: &str) -> bool {
     let mut bytes = name.bytes().rev();
     for _ in 0..16 {
-        if !bytes.next().map_or(false, is_ascii_hexdigit) {
+        if !bytes.next().is_some_and(is_ascii_hexdigit) {
             return false;
         }
     }
