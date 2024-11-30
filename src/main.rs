@@ -11,6 +11,7 @@
     clippy::struct_excessive_bools,
     clippy::too_many_lines,
     clippy::uninlined_format_args,
+    clippy::unnecessary_map_or,
     clippy::unseparated_literal_suffix,
     clippy::unwrap_or_default
 )]
