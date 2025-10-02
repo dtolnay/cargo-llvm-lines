@@ -13,7 +13,7 @@ repository = "https://github.com/dtolnay/cargo-llvm-lines"
 [dependencies]
 cargo-subcommand-metadata = "0.1"
 clap = { version = "4", features = ["deprecated", "derive", "wrap_help"] }
-clap-cargo = "0.17"
+clap-cargo = "0.18"
 regex = { version = "0.1", package = "regex-lite" }
 rustc-demangle = "0.1"
 shlex = "1.3"
