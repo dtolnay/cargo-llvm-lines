@@ -9,6 +9,7 @@ edition = "2021"
 keywords = ["cargo", "subcommand"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/dtolnay/cargo-llvm-lines"
+rust-version = "1.86"
 
 [dependencies]
 cargo-subcommand-metadata = "0.1"
