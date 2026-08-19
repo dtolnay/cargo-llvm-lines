@@ -164,14 +164,16 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         all_features,
         no_default_features,
         jobs,
+        keep_going,
         release,
         ref profile,
         ref target,
         ref target_dir,
         ref manifest_path,
-        frozen,
+        ignore_rust_version,
         locked,
         offline,
+        frozen,
         ref rest,
     } = *opts;
 
@@ -229,7 +231,7 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         cmd.flag_value("--bench", bench);
     }
 
-    if let Some(features) = features {
+    for features in features {
         cmd.flag_value("--features", features);
     }
 
@@ -243,6 +245,10 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
 
     if let Some(jobs) = jobs {
         cmd.flag_value("--jobs", jobs.to_string());
+    }
+
+    if keep_going {
+        cmd.arg("--keep-going");
     }
 
     if release {
@@ -265,8 +271,8 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
         cmd.flag_value("--manifest-path", manifest_path);
     }
 
-    if frozen {
-        cmd.arg("--frozen");
+    if ignore_rust_version {
+        cmd.arg("--ignore-rust-version");
     }
 
     if locked {
@@ -275,6 +281,10 @@ fn propagate_opts(cmd: &mut Command, opts: &LlvmLines, outfile: &Path) {
 
     if offline {
         cmd.arg("--offline");
+    }
+
+    if frozen {
+        cmd.arg("--frozen");
     }
 
     // The `-Cno-prepopulate-passes` means we skip LLVM optimizations, which is

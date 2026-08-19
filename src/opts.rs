@@ -106,7 +106,7 @@ pub struct LlvmLines {
 
     // Feature selection
     #[arg(short = 'F', long, value_name = "FEATURES", help_heading = FEATURE_SELECTION)]
-    pub features: Option<String>,
+    pub features: Vec<String>,
     #[arg(long, help_heading = FEATURE_SELECTION)]
     pub all_features: bool,
     #[arg(long, help_heading = FEATURE_SELECTION)]
@@ -115,6 +115,8 @@ pub struct LlvmLines {
     // Compilation options
     #[arg(short, long, value_name = "N", help_heading = COMPILATION_OPTIONS)]
     pub jobs: Option<usize>,
+    #[arg(long, help_heading = COMPILATION_OPTIONS)]
+    pub keep_going: bool,
     #[arg(long, help_heading = COMPILATION_OPTIONS)]
     pub release: bool,
     #[arg(long, value_name = "PROFILE-NAME", help_heading = COMPILATION_OPTIONS)]
@@ -128,11 +130,13 @@ pub struct LlvmLines {
     #[arg(long, value_name = "PATH", help_heading = MANIFEST_OPTIONS)]
     pub manifest_path: Option<PathBuf>,
     #[arg(long, help_heading = MANIFEST_OPTIONS)]
-    pub frozen: bool,
+    pub ignore_rust_version: bool,
     #[arg(long, help_heading = MANIFEST_OPTIONS)]
     pub locked: bool,
     #[arg(long, help_heading = MANIFEST_OPTIONS)]
     pub offline: bool,
+    #[arg(long, help_heading = MANIFEST_OPTIONS)]
+    pub frozen: bool,
 
     // Any additional flags for rustc taken after `--`.
     #[arg(last = true, hide = true)]
