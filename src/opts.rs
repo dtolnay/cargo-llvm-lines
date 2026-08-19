@@ -127,7 +127,7 @@ pub struct LlvmLines {
     pub target_dir: Option<PathBuf>,
 
     // Manifest options
-    #[arg(long, value_name = "PATH", help_heading = MANIFEST_OPTIONS)]
+    #[arg(short, long, value_name = "PATH", help_heading = MANIFEST_OPTIONS)]
     pub manifest_path: Option<PathBuf>,
     #[arg(long, help_heading = MANIFEST_OPTIONS)]
     pub ignore_rust_version: bool,
